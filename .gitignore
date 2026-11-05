@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+build/
+dist/
+.venv/
+~$*.pptx
+.~lock.*
+
+# deck de outro trabalho usado só como referência visual (mantido local)
+templates/referencia_visual_ML_PROJ_MLP.pdf

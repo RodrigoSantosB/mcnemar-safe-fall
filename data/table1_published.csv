@@ -1,0 +1,6 @@
+variable_en,variavel_pt,pre_correct_n,pre_correct_pct_reported,pre_incorrect_n,pre_incorrect_pct_reported,post_correct_n,post_correct_pct_reported,post_incorrect_n,post_incorrect_pct_reported,chi2_reported,p_reported
+Bending the neck,Flexão do pescoço,28,23.6,94,76.4,110,90.2,12,9.8,76.291,0.000
+Not using hands,Não apoiar as mãos,1,1.6,121,98.4,107,90.2,15,9.8,104.009,0.000
+Rolling up,Enrolamento corporal,9,8.1,113,91.9,111,91.1,11,8.9,96.236,0.000
+Bending hip,Flexão do quadril,1,1.6,121,98.4,106,87,16,13,103.010,0.000
+Bending knees,Flexão dos joelhos,68,56.1,54,43.9,116,95.1,6,4.9,42.481,0.000
