@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import matplotlib.pyplot as plt
-
+from . import plotly_charts as pc
 from .contingency_tables import PairedTable
 from .mcnemar_analysis import interpret, mcnemar_exact
-from .visualizations import plot_binomial_null, plot_contingency
 
 
 def demo_state(b: int, c: int, a: int = 0, d: int = 0) -> dict:
@@ -26,12 +24,8 @@ def demo_state(b: int, c: int, a: int = 0, d: int = 0) -> dict:
 
 def render(b: int, c: int, a: int = 0, d: int = 0):
     state = demo_state(b, c, a, d)
-    fig = plt.figure(figsize=(12, 4.2))
-    gs = fig.add_gridspec(1, 2, width_ratios=[1, 1.9])
-    plot_contingency(state["table"], ax=fig.add_subplot(gs[0]))
-    plot_binomial_null(b, c, ax=fig.add_subplot(gs[1]))
-    fig.tight_layout()
-    plt.show()
+    pc.contingency(state["table"]).show()
+    pc.binomial_null(b, c).show()
     print(
         f"Pares discordantes: b + c = {state['discordant']}   |   "
         f"estatística exata min(b,c) = {state['statistic']:.0f}   |   p exato = {state['pvalue']:.4g}"

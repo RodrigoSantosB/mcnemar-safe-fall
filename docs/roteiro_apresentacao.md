@@ -36,7 +36,7 @@ exemplo de educação 3/13) foram removidos.
 | 25 | O X² publicado revela b e c | Aplicação | Inversão do χ² corrigido (Edwards); tabelas inferidas | Fórmula + tabela + fluxo do pescoço |
 | 26 | Limitações | Leitura crítica | Sem controle, conveniência, familiaridade, comportamento ≠ lesão | 6 cartões |
 | 27 | Bloco III — Demonstração em Python | Transição | 3 tópicos | Divisória do template |
-| 28 | Notebook | Mostrar o código | Etapas, módulos, validação tripla, 44 testes; snippet da Ilustração #2 | Pipeline + bloco de código |
+| 28 | Notebook | Mostrar o código | Seções do notebook, módulos, validação tripla, 45 testes; snippet da Ilustração #2 | Pipeline + bloco de código |
 | 29 | Demonstração interativa | Ao vivo | Controles b e c, começando na campanha | Mock dos sliders + saída do widget + QR code do Colab |
 | 30 | Síntese | Fechar | 4 mensagens | Cartões numerados |
 | 31 | Referências | Fontes | Artigo, McNemar 1947, Edwards 1948, Agresti, Fagerland, statsmodels/SciPy | Lista |
@@ -45,9 +45,9 @@ exemplo de educação 3/13) foram removidos.
 **Notas do apresentador sobre o roteiro:** P(X ≤ 3) = 576/32768 = 0,017578 (o roteiro trunca para 0,0175);
 "houveram mudanças" deve ser dito "houve mudança"; p = 2·P(X ≤ k) é limitado a 1 quando b = c.
 
-**Momento ao vivo (slide 29):** abrir `notebooks/01_mcnemar_safe_fall.ipynb`, Etapa 9a, que começa na Ilustração #2
+**Momento ao vivo (slide 29):** abrir `notebooks/01_mcnemar_safe_fall.ipynb`, seção 9, que começa na Ilustração #2
 (b = 3, c = 12 → p = 0,035). Mover para b = c → p = 1; alterar a e d para mostrar que o p-valor não muda.
-Se o widget falhar, rodar a célula seguinte (`render(b, c)`). A Etapa 12 tem abas para ajustar ao vivo os slides
+Se o widget falhar, rodar a célula seguinte (`render(b, c)`). A seção 10 tem abas para ajustar ao vivo os slides
 10 (variantes), 15 (Ilustração #1), 17 (Ilustração #2), 25 (Safe Fall) e 29 (demonstração).
 
 Rótulos de dados usados nos slides: **publicado** (Tabela 1), **INFERIDO** (tabelas 2×2 do Safe Fall) e **SINTÉTICO**

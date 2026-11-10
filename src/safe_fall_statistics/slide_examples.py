@@ -10,10 +10,9 @@ from __future__ import annotations
 
 from math import comb
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
-from . import visualizations as viz
+from . import plotly_charts as pc
 from .contingency_tables import PairedTable
 from .data_loader import N_TOTAL, load_published_table1
 from .mcnemar_analysis import ALPHA, chi2_critical, compare_methods, format_p, mcnemar_exact
@@ -71,12 +70,8 @@ def variants_render(b: int, c: int):
     df = variants_state(b, c)
     display(df.style.format({"p": "{:.6f}"}))
     if df["rejeita H0 (5%)"].nunique() > 1:
-        print("⚠ As versões levam a conclusões diferentes neste caso.")
-    fig, ax = plt.subplots(figsize=(8.5, 3.0))
-    ax.barh(df["versão"][::-1], df["p"][::-1], color=[viz.TEAL, viz.RED, viz.ORANGE, viz.NAVY])
-    ax.axvline(ALPHA, color=viz.GRAY, ls="--", lw=1)
-    ax.set_xlabel("p-valor")
-    plt.show()
+        print("Atenção: as versões levam a conclusões diferentes neste caso.")
+    pc.pvalue_bars(df).show()
 
 
 def variants_tab(b: int = CAMPANHA.b, c: int = CAMPANHA.c):
@@ -109,11 +104,8 @@ def classic_example_render(a: int, b: int, c: int, d: int):
     print(f"Etapa 3.3  p-valor = {s['p']:.6g}")
     verdict = "Rejeita-se H0" if s["reject"] else "Não se rejeita H0"
     print(f"Etapa 3.4  {verdict}. Aprovados: {s['before']:.0%} antes → {s['after']:.0%} depois.")
-    fig, axes = plt.subplots(1, 2, figsize=(13, 4), gridspec_kw={"width_ratios": [1, 1.8]})
-    viz.plot_contingency(s["table"], ax=axes[0], labels=("Aprovado", "Reprovado"), axis_titles=("Antes", "Depois"))
-    viz.plot_chi2_critical(s["chi2"], ax=axes[1])
-    fig.tight_layout()
-    plt.show()
+    pc.contingency(s["table"], labels=("Aprovado", "Reprovado"), axis_titles=("Antes", "Depois")).show()
+    pc.chi2_critical(s["chi2"]).show()
     return s
 
 
@@ -155,11 +147,8 @@ def exact_example_render(a: int, b: int, c: int, d: int):
     print(f"   p-valor = 2 · P(X ≤ {k}) = {2 * s['tail']:.6g}" + ("  (limitado a 1)" if 2 * s["tail"] > 1 else ""))
     verdict = "Rejeita-se H0" if s["significant"] else "Não se rejeita H0"
     print(f"Etapa 3.2  {verdict}. Intenção de compra: {s['before']:.0%} antes → {s['after']:.0%} depois.")
-    fig, axes = plt.subplots(1, 2, figsize=(13, 4), gridspec_kw={"width_ratios": [1, 1.8]})
-    viz.plot_contingency(s["table"], ax=axes[0], labels=("Compraria", "Não compraria"), axis_titles=("Antes", "Depois"))
-    viz.plot_binomial_null(b, c, ax=axes[1])
-    fig.tight_layout()
-    plt.show()
+    pc.contingency(s["table"], labels=("Compraria", "Não compraria"), axis_titles=("Antes", "Depois")).show()
+    pc.binomial_null(b, c).show()
     return s
 
 
@@ -188,13 +177,10 @@ def safe_fall_state(variable: str, b: int | None = None) -> dict:
 def safe_fall_render(variable: str, b: int):
     s = safe_fall_state(variable, b)
     t, row = s["table"], s["row"]
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), gridspec_kw={"width_ratios": [1, 1.4, 1.6]})
     tag = "INFERIDO" if s["is_inferred"] else "HIPOTÉTICO (mesmas margens)"
-    viz.plot_contingency(t, ax=axes[0], title=f"[{tag}]")
-    viz.plot_transitions(t, ax=axes[1])
-    viz.plot_binomial_null(t.b, t.c, ax=axes[2])
-    fig.tight_layout()
-    plt.show()
+    pc.contingency(t, title=f"Tabela 2 × 2 — {tag}").show()
+    pc.transitions(t, title=f"Transições pré → pós — {variable}").show()
+    pc.binomial_null(t.b, t.c).show()
     chi2 = compare_methods(t)["chi2_com_correcao"]
     print(f"Publicado: pré correto {row.pre_correct_n}, pós correto {row.post_correct_n}, X² = {row.chi2_reported:.3f}")
     print(f"Tabela {tag.lower()}: a={t.a}, b={t.b}, c={t.c}, d={t.d} → χ² corrigido = {chi2:.3f}, "

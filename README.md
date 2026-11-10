@@ -11,7 +11,7 @@ Implementation of a Safe Fall Program*, IJERPH 15:2669, [doi:10.3390/ijerph15122
 | Arquivo | Conteúdo |
 |---|---|
 | `slides/apresentacao_mcnemar_safe_fall.pptx` | Apresentação editável (32 slides) construída sobre o template oficial CIn-UFPE; o Bloco I segue o roteiro "Teste de McNemar" (o slide 29 tem QR code para o Colab) |
-| `notebooks/01_mcnemar_safe_fall.ipynb` | Notebook didático em 11 etapas, com demonstração interativa (já executado) |
+| `notebooks/01_mcnemar_safe_fall.ipynb` | Notebook didático em 11 seções (contexto, fundamentação, fórmulas, código, gráficos Plotly, interpretação, conclusão), com demonstração interativa (já executado) |
 | `src/safe_fall_statistics/` | Módulos Python usados pelo notebook e pelos slides |
 | `data/table1_published.csv` | Tabela 1 do artigo, transcrita sem correções (ver `data/README.md`) |
 | `docs/diagnostico_inicial.md` | Auditoria do repositório, resumo do artigo e conferência da Tabela 1 |
@@ -26,7 +26,7 @@ Não há nada para instalar: numpy, pandas, scipy, statsmodels, matplotlib, plot
 
 ### Exemplos dos slides ajustáveis
 
-A **Etapa 12** do notebook abre abas com os exemplos da apresentação, nos mesmos valores iniciais:
+A **seção 10** do notebook abre abas com os exemplos da apresentação, nos mesmos valores iniciais:
 
 | Aba | Slide | Controles |
 |---|---|---|
@@ -66,10 +66,10 @@ python slides/make_figures.py && python slides/build_slides.py
 Reexecutar o notebook de ponta a ponta sem abrir o Jupyter:
 
 ```bash
-jupyter nbconvert --to notebook --execute --inplace notebooks/01_mcnemar_safe_fall.ipynb
+jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=30 notebooks/01_mcnemar_safe_fall.ipynb
 ```
 
-A demonstração interativa (Etapa 9a) usa **ipywidgets**: rode-a no Jupyter Lab/Notebook ou no VS Code com o kernel ativo.
+A demonstração interativa (seção 9) usa **ipywidgets**: rode-a no Jupyter Lab/Notebook ou no VS Code com o kernel ativo.
 Uma versão estática (`render(b, c)`) vem logo em seguida, para apresentações sem kernel.
 
 ## Estrutura
@@ -88,11 +88,12 @@ Uma versão estática (`render(b, c)`) vem logo em seguida, para apresentações
 │   ├── mcnemar_analysis.py    p exato manual, scipy, statsmodels; mid-p; χ²; interpretação
 │   ├── reconstruction.py      inferência de b e c a partir do X² publicado
 │   ├── synthetic_data.py      ilustrações SINTÉTICAS do roteiro
-│   ├── visualizations.py      gráficos na paleta do template
+│   ├── visualizations.py      figuras dos slides (matplotlib)
+│   ├── plotly_charts.py       gráficos interativos do notebook (plotly.graph_objects)
 │   ├── interactive_demo.py    widget b × c
 │   └── slide_examples.py      exemplos dos slides com controles
 ├── templates/            template oficial CIn-UFPE (.pptx); a referência visual em PDF fica só local
-└── tests/                44 testes (pytest)
+└── tests/                45 testes (pytest)
 ```
 
 ## Três tipos de dado — nunca misturados

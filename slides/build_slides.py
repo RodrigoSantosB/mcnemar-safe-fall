@@ -652,8 +652,8 @@ section_slide("Bloco III", "Demonstração em Python",
 # =============================================================== 28. Notebook
 s, n = new_slide()
 content_chrome(s, "Implementação", "Notebook 01_mcnemar_safe_fall.ipynb", n)
-etapas = ["Dados", "Exploração", "Tabela 2×2", "Hipóteses", "Cálculo manual", "Bibliotecas",
-          "Exato × χ²", "Visualização", "Interpretação", "Comparação"]
+etapas = ["Dados", "Exploração", "Fundamentos", "Ilustração #1", "Ilustração #2", "Versões",
+          "Safe Fall", "Demonstração", "Exemplos", "Conclusões"]
 for i, e in enumerate(etapas):
     x, y = 0.5 + (i % 5) * 1.0, 1.3 + (i // 5) * 0.62
     rect(s, x, y, 0.92, 0.5, fill=[NAVY, TEAL][i // 5], radius=0.12)
@@ -677,13 +677,13 @@ text(s, 5.8, 1.3, 3.6, 0.3, "src/safe_fall_statistics/", size=11.5, color=RED, b
 mods = [("data_loader", "Tabela 1 publicada"), ("data_validation", "auditoria e pares/ausentes"),
         ("contingency_tables", "PairedTable a, b, c, d"), ("mcnemar_analysis", "exato, χ², interpretação"),
         ("reconstruction", "inferência b, c via X²"), ("synthetic_data", "exemplos SINTÉTICOS"),
-        ("visualizations", "gráficos no padrão visual"), ("interactive_demo", "widget b × c"),
+        ("visualizations", "figuras dos slides"), ("plotly_charts", "gráficos interativos"), ("interactive_demo", "widget b × c"),
         ("slide_examples", "exemplos dos slides ajustáveis")]
 for i, (m, d) in enumerate(mods):
-    y = 1.66 + i * 0.32
+    y = 1.64 + i * 0.29
     text(s, 5.8, y, 1.75, 0.32, m + ".py", size=9, color=NAVY, bold=True, font=MONO_FONT)
     text(s, 7.6, y, 1.85, 0.32, d, size=9.5, color=GRAY)
-text(s, 5.8, 4.62, 3.6, 0.4, [[("44 testes automatizados", {"bold": True, "color": TEAL}), " (pytest)"]], size=10.5)
+text(s, 5.8, 4.62, 3.6, 0.4, [[("45 testes automatizados", {"bold": True, "color": TEAL}), " (pytest)"]], size=10.5)
 
 # =============================================================== 29. Demo interativa
 s, n = new_slide()
@@ -708,7 +708,7 @@ text(s, 7.07, 3.5, 2.4, 1.6, [
     [("b = 3, c = 12: ", {"bold": True}), "p = 0,035."],
     [("Mude a e d: ", {"bold": True, "color": RED}), "o p-valor não muda."],
 ], size=10, spacing=4)
-source_note(s, "Dados SINTÉTICOS. Notebook: Etapa 9a (este widget) e Etapa 12 (abas com as ilustrações, as variantes e o Safe Fall, ajustáveis).")
+source_note(s, "Dados SINTÉTICOS. Notebook: seção 9 (este widget) e seção 10 (abas com as ilustrações, as variantes e o Safe Fall, ajustáveis).")
 
 # =============================================================== 30. Conclusões
 s, n = new_slide()

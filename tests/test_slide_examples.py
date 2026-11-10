@@ -52,3 +52,20 @@ def test_widget_builds_all_tabs():
     pytest.importorskip("ipywidgets")
     tab = slide_examples_widget()
     assert len(tab.children) == 5
+
+
+def test_plotly_charts_build():
+    import plotly.graph_objects as go
+
+    from safe_fall_statistics import plotly_charts as pc
+    from safe_fall_statistics.data_loader import load_published_table1
+    from safe_fall_statistics.reconstruction import reconstructed_tables
+    from safe_fall_statistics.synthetic_data import CAMPANHA, MONITORIA
+
+    df = load_published_table1()
+    figs = [pc.pre_post(df), pc.contingency(MONITORIA), pc.binomial_null(3, 12), pc.binomial_null(0, 0),
+            pc.chi2_critical(10.0), pc.transitions(CAMPANHA), pc.exact_vs_asymptotic(15),
+            pc.discordant_bars(reconstructed_tables(df)), pc.pvalue_bars(variants_state(3, 12))]
+    assert all(isinstance(f, go.Figure) for f in figs)
+    tail = figs[2].data[0].marker.color
+    assert list(tail[:4]) == [pc.RED] * 4 and tail[7] == pc.CONCORDANT
