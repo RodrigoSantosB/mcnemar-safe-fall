@@ -65,7 +65,7 @@ text(s, 0.85, 3.2, 8.4, 0.35,
 text(s, 3.2, 3.85, 5.2, 0.6, ["Rodrigo Santos Batista", "rsb6"], size=13, color=WHITE, bold=True,
      font=LABEL_FONT, align=PP_ALIGN.CENTER, spacing=6)
 picture(s, ASSETS / "logo_cin_ufpe_branco.png", 0.85, 4.55, w=2.5)
-notes(s, "Apresentação em três blocos: fundamentos do teste exato de McNemar, sua aplicação no estudo Safe Fall "
+notes(s, "Apresentação em três blocos: o teste de McNemar (roteiro e duas ilustrações), sua aplicação no estudo Safe Fall "
          "e uma demonstração prática em Python (notebook 01_mcnemar_safe_fall.ipynb).")
 
 # =============================================================== 2. Sumário
@@ -73,11 +73,11 @@ s, n = new_slide()
 text(s, 0.6, 0.3, 5, 0.6, "Sumário", size=26, color=RED, bold=True, font=TITLE_FONT)
 picture(s, ASSETS / "logo_cin.png", 8.62, 0.22, w=1.05)
 items = [
-    ("Bloco I — Fundamentação", "Dados pareados, tabela 2×2, hipóteses, cálculo exato e interpretação."),
-    ("Bloco II — O estudo Safe Fall", "122 crianças, cinco respostas motoras, pré e pós-intervenção."),
-    ("McNemar no artigo", "Por que o teste é adequado, Tabela 1 conferida e limitações."),
-    ("Bloco III — Python", "Notebook reprodutível, demonstração interativa e testes automatizados."),
-    ("Outro contexto e conclusões", "Avaliação de aprendizagem: mesma estrutura estatística."),
+    ("Bloco I — O teste de McNemar", "Problemática, definição, origem, pressupostos, formalização e variantes."),
+    ("Ilustrações", "#1 McNemar clássico (monitoria) e #2 McNemar exato (campanha)."),
+    ("Bloco II — O estudo Safe Fall", "122 crianças, cinco respostas motoras, Tabela 1 e limitações."),
+    ("Bloco III — Python", "Notebook reprodutível e demonstração interativa no Colab."),
+    ("Síntese e referências", "O que levar desta apresentação."),
 ]
 for i, (h, d) in enumerate(items):
     col, row = (0, i) if i < 3 else (1, i - 3)
@@ -88,200 +88,356 @@ for i, (h, d) in enumerate(items):
 text(s, 9.3, 5.25, 0.45, 0.25, str(n), size=10, color=MID_GRAY, align=PP_ALIGN.RIGHT)
 
 # =============================================================== 3. Bloco I
-section_slide("Bloco I", "Fundamentação estatística",
-              ["O problema dos dados pareados", "Tabela 2×2 e pares discordantes", "Teste exato e interpretação"])
+section_slide("Bloco I", "O teste de McNemar",
+              ["Problemática, definição e pressupostos", "Formalização e variantes", "Ilustrações resolvidas"])
 
-# =============================================================== 4. Problema
+# =============================================================== 4. Problemática
 s, n = new_slide()
-content_chrome(s, "Introdução", "O treinamento mudou o comportamento do grupo?", n)
-flow = [("Observação", "pré-teste"), ("Intervenção", "treinamento"), ("Nova observação", "pós-teste")]
+content_chrome(s, "0. Problemática", "A campanha mudou a intenção de compra?", n)
+flow = [("Antes", "compraria?"), ("Campanha", "publicitária"), ("Depois", "compraria?")]
 for i, (h, d) in enumerate(flow):
     chevron(s, 0.5 + i * 1.62, 1.35, 1.75, 0.62, h, fill=[GRAY, RED, TEAL][i], size=11, first=(i == 0))
     text(s, 0.5 + i * 1.62, 2.0, 1.75, 0.3, d, size=10, color=GRAY, italic=True, align=PP_ALIGN.CENTER)
-bullets(s, 0.5, 2.5, 4.9, 1.6, [
-    "Uma escola avalia se cada aluno executa um movimento corretamente.",
-    "Os mesmos alunos são observados antes e depois do treinamento.",
-    "Cada observação é dicotômica: correto ou incorreto.",
-], size=12.5, spacing=8)
-callout(s, 0.5, 4.2, 4.9, 0.85, "A pergunta:",
-        "a proporção de acertos mudou além do que o acaso explicaria?", size=12.5)
-# tabela de mudanças individuais
-card(s, 5.75, 1.3, 3.75, 3.75)
-text(s, 5.95, 1.4, 3.4, 0.3, "Mudanças individuais (exemplo)", size=11.5, color=TEAL, bold=True)
-rows = [["Aluno", "Pré", "Pós", "Transição"],
-        ["Ana", "✗", "✓", "melhorou"], ["Bruno", "✓", "✓", "manteve"], ["Caio", "✗", "✓", "melhorou"],
-        ["Davi", "✓", "✗", "piorou"], ["Eva", "✗", "✗", "manteve"], ["Fábio", "✗", "✓", "melhorou"]]
-hl = {}
-for r in range(1, len(rows)):
-    hl[(r, 3)] = TEAL if rows[r][3] == "melhorou" else RED if rows[r][3] == "piorou" else GRAY
-table(s, 5.95, 1.8, 3.35, 2.45, rows, col_widths=[0.85, 0.6, 0.6, 1.3], size=11, highlight=hl)
-text(s, 5.95, 4.35, 3.35, 0.6, "Só quem muda de categoria informa sobre o efeito; quem “manteve” não distingue as hipóteses.",
-     size=10, color=GRAY, italic=True)
-notes(s, "Comece com a intuição: comparar duas porcentagens não basta, porque são as mesmas pessoas. "
-         "O que interessa é quem mudou e em que direção.")
+bullets(s, 0.5, 2.5, 4.9, 1.7, [
+    "Uma empresa quer avaliar se uma campanha publicitária mudou a intenção de compra dos consumidores.",
+    "Pergunta às mesmas pessoas, antes e depois da campanha, se comprariam determinado produto.",
+    "Depois da coleta, a proporção de pessoas com intenção de compra aumentou.",
+], size=12, spacing=7)
+callout(s, 0.5, 4.3, 4.9, 0.8, "A pergunta:",
+        "esse aumento é estatisticamente significativo ou pode ser só variação aleatória?", size=12)
+card(s, 5.75, 1.3, 3.75, 3.8, accent=RED)
+text(s, 6.0, 1.4, 3.4, 0.3, "Mesmas pessoas, duas medidas", size=12, color=RED, bold=True)
+rows = [["Consumidor", "Antes", "Depois"],
+        ["1", "compraria", "compraria"], ["2", "não", "compraria"], ["3", "compraria", "não"],
+        ["4", "não", "não"], ["…", "…", "…"]]
+table(s, 6.0, 1.8, 3.3, 2.1, rows, col_widths=[1.1, 1.1, 1.1], size=10.5,
+      highlight={(2, 2): TEAL, (3, 2): RED})
+text(s, 6.0, 4.05, 3.35, 1.0, [[("É para investigar situações como essa que usamos o ", {}),
+                                ("teste de McNemar.", {"bold": True, "color": RED})]], size=11.5)
+notes(s, "Problemática do roteiro. A Ilustração #2, adiante, resolve exatamente este caso com números.")
 
-# =============================================================== 5. O que é / quando usar
+# =============================================================== 5. O teste de McNemar?
 s, n = new_slide()
-content_chrome(s, "Fundamentação", "O que é o teste de McNemar — e quando usá-lo", n)
-defs = [
-    ("Amostras pareadas", "Cada indivíduo é medido duas vezes (ou pares casados). As medidas não são independentes."),
-    ("Variável dicotômica", "Duas categorias por medida: correto/incorreto, sim/não, presente/ausente."),
-    ("Não paramétrico", "Não supõe normalidade nem parâmetros populacionais contínuos: trabalha com contagens."),
-]
-for i, (h, d) in enumerate(defs):
-    y = 1.3 + i * 1.05
-    badge(s, 0.5, y + 0.1, 0.5, "abc"[i], fill=[RED, TEAL, ORANGE][i], size=15)
-    text(s, 1.15, y, 3.6, 0.3, h, size=13, color=NAVY, bold=True)
-    text(s, 1.15, y + 0.32, 3.6, 0.65, d, size=10.5, color=TEXT)
-text(s, 0.5, 4.5, 4.3, 0.6,
-     [[("Objetivo: ", {"bold": True, "color": RED}),
-       "testar a homogeneidade marginal — se P(correto) é igual antes e depois — usando apenas os pares que mudaram."]],
-     size=10.5)
-# fluxograma de decisão
-card(s, 5.05, 1.25, 4.45, 3.9)
-text(s, 5.25, 1.32, 4, 0.3, "Fluxograma de decisão", size=11.5, color=TEAL, bold=True)
-def qbox(x, y, w, t, fill=LIGHT, color=NAVY, bold=False):
-    rect(s, x, y, w, 0.5, fill=fill, radius=0.15)
-    text(s, x, y, w, 0.5, t, size=10, color=color, bold=bold, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-qbox(5.25, 1.7, 2.35, "Mesmos indivíduos em 2 momentos?")
-qbox(5.25, 2.6, 2.35, "Resposta com 2 categorias?")
-qbox(5.25, 3.5, 2.35, "Teste de McNemar", fill=RED, color=WHITE, bold=True)
-qbox(7.85, 1.7, 1.5, "χ² / 2 proporções independentes", fill=WHITE)
-qbox(7.85, 2.6, 1.5, "Stuart-Maxwell / Bowker", fill=WHITE)
-qbox(7.85, 3.5, 1.5, "> 2 momentos: Q de Cochran", fill=WHITE)
-for y in (2.22, 3.12):
-    rect(s, 6.4, y, 0.05, 0.36, fill=MID_GRAY)
-    text(s, 6.5, y + 0.02, 0.5, 0.3, "sim", size=9, color=TEAL, bold=True)
-for y in (1.9, 2.8):
-    arrow(s, 7.62, y + 0.02, 0.2, 0.14)
-    text(s, 7.55, y - 0.2, 0.4, 0.2, "não", size=9, color=RED, bold=True)
-text(s, 5.25, 4.12, 4.1, 0.95,
-     [[("Exato × assintótico: ", {"bold": True, "color": NAVY}),
-       "o exato usa a distribuição binomial dos pares discordantes; a versão χ² é uma aproximação "
-       "para muitos pares."]], size=10)
-notes(s, "Diferença central para o qui-quadrado de independência: aqui as duas medidas vêm do mesmo indivíduo.")
+content_chrome(s, "1. Definição", "O que é o teste de McNemar?", n)
+card(s, 0.5, 1.25, 5.0, 2.55, accent=RED)
+text(s, 0.75, 1.32, 4.65, 2.45, [
+    [("Teste não paramétrico ", {"bold": True, "color": RED}),
+     "para dados categóricos nominais ", ("pareados", {"bold": True}), "."],
+    "Há duas medições relacionadas, e cada uma tem duas categorias mutuamente exclusivas "
+    "(sim/não, positivo/negativo, sucesso/fracasso).",
+    [("Testa ", {}), ("se as duas medições têm a mesma proporção marginal", {"bold": True, "color": NAVY}),
+     ", isto é, se houve mudança estatisticamente significativa entre a primeira e a segunda medida após "
+     "uma intervenção."],
+], size=12, spacing=7)
+text(s, 5.85, 1.25, 3.6, 0.35, "Exemplos", size=13, color=TEAL, bold=True)
+exs = [("Diagnóstico", "Dois testes diagnósticos aplicados às mesmas pessoas."),
+       ("Opinião", "Antes e depois de uma campanha de conscientização."),
+       ("Sintoma", "Presença/ausência antes e depois de um tratamento.")]
+for i, (h, d) in enumerate(exs):
+    y = 1.7 + i * 1.05
+    badge(s, 5.85, y + 0.08, 0.45, str(i + 1), fill=[RED, TEAL, ORANGE][i], size=13)
+    text(s, 6.45, y, 3.05, 0.3, h, size=12, color=NAVY, bold=True)
+    text(s, 6.45, y + 0.3, 3.05, 0.65, d, size=10.5, color=TEXT)
+rect(s, 0.5, 4.0, 5.0, 1.1, fill=NAVY, radius=0.06)
+text(s, 0.7, 4.0, 4.6, 1.1, [[("Pareado ", {"bold": True, "color": SAND}),
+                             ("= as duas medidas vêm do mesmo indivíduo (ou de pares emparelhados), "
+                              "por isso não são independentes.", {"color": WHITE})]],
+     size=11.5, anchor=MSO_ANCHOR.MIDDLE)
 
-# =============================================================== 6. Tabela 2×2
+# =============================================================== 6. Origem e pressupostos
 s, n = new_slide()
-content_chrome(s, "Fundamentação", "A tabela de contingência 2 × 2 pareada", n)
-picture(s, FIGS / "matriz_generica.png", 0.45, 1.2, w=4.3, h=3.9)
-items6 = [
-    [("a", {"bold": True, "italic": True}), " — continuou correto"],
-    [("b", {"bold": True, "italic": True, "color": RED}), " — passou de correto para incorreto (piorou)"],
-    [("c", {"bold": True, "italic": True, "color": TEAL}), " — passou de incorreto para correto (melhorou)"],
-    [("d", {"bold": True, "italic": True}), " — continuou incorreto"],
-]
-bullets(s, 5.0, 1.3, 4.5, 1.6, items6, size=12.5, spacing=6)
-card(s, 5.0, 2.95, 4.5, 1.05, accent=TEAL)
-text(s, 5.25, 3.0, 4.15, 0.95,
-     [[("Pares discordantes b e c ", {"bold": True, "color": TEAL}),
-       "são a única informação usada pela estatística de McNemar."],
-      [("a e d", {"bold": True}), " (concordantes) não alteram o p-valor."]], size=11.5, spacing=4)
-callout(s, 5.0, 4.15, 4.5, 0.9, "Por quê?",
-        "pós − pré = (a+c) − (a+b) = c − b. A mudança nas proporções depende só de b e c.", size=11.5)
-notes(s, "Mostre que a cancela: proporção correta no pré = (a+b)/N, no pós = (a+c)/N; a diferença é (c-b)/N.")
+content_chrome(s, "2–3. Origem e pressupostos", "Quem criou o teste e o que ele exige", n)
+card(s, 0.5, 1.25, 4.3, 3.85, accent=NAVY)
+text(s, 0.75, 1.32, 4.0, 0.35, "Quinn McNemar, 1947", size=14, color=NAVY, bold=True, font=TITLE_FONT)
+text(s, 0.75, 1.72, 4.0, 3.3, [
+    "Psicólogo e estatístico.",
+    [("Artigo: ", {"bold": True}),
+     ("“Note on the sampling error of the difference between correlated proportions or percentages”", {"italic": True}),
+     " (Psychometrika)."],
+    [("Objetivo original: ", {"bold": True, "color": RED}),
+     "fórmulas para avaliar a significância da diferença entre proporções correlacionadas, isto é, "
+     "obtidas dos mesmos indivíduos ou de pares relacionados."],
+], size=11.5, spacing=8)
+text(s, 5.1, 1.25, 4.4, 0.35, "Pressupostos", size=14, color=RED, bold=True, font=TITLE_FONT)
+pres = [("✓", TEAL, "Amostra aleatória ou representativa."),
+        ("✓", TEAL, "Dados dependentes (pareados), categóricos, binários e dicotômicos: só duas categorias, "
+                    "mutuamente exclusivas."),
+        ("✗", GRAY, "Não exige normalidade dos dados nem homogeneidade das variâncias.")]
+for i, (mk, col, d) in enumerate(pres):
+    y = 1.75 + i * 1.1
+    badge(s, 5.1, y + 0.05, 0.42, mk, fill=col, size=13)
+    text(s, 5.7, y, 3.8, 1.0, d, size=12, color=TEXT)
 
-# =============================================================== 7. Hipóteses e mecanismo
+# =============================================================== 7. Ideia central + organização
 s, n = new_slide()
-content_chrome(s, "Fundamentação", "Hipóteses e funcionamento do teste exato", n)
-card(s, 0.5, 1.25, 4.3, 1.75, accent=RED)
-text(s, 0.75, 1.32, 4.0, 1.65, [
-    [("H₀: ", {"bold": True, "color": RED}), "P(incorreto → correto) = P(correto → incorreto)"],
-    [("H₁: ", {"bold": True, "color": RED}), "essas probabilidades são diferentes (bilateral)"],
-    [("Equivalente: ", {"bold": True, "color": NAVY}), "P(correto no pré) = P(correto no pós) — homogeneidade marginal."],
-    [("α = 0,05", {"bold": True, "color": NAVY}), ", como no artigo."],
-], size=11.5, spacing=5)
-card(s, 0.5, 3.15, 4.3, 1.95, accent=TEAL)
-text(s, 0.75, 3.2, 4.0, 0.3, "Lógica do teste exato", size=12, color=TEAL, bold=True)
-text(s, 0.75, 3.52, 4.0, 1.55, [
-    "Sob H₀, cada par discordante é “piorou” ou “melhorou” com chance ½ — como uma moeda honesta.",
-    "Condicionando a n = b + c pares discordantes:",
-], size=11, spacing=4)
-picture(s, FIGS / "formula_binomial.png", 0.75, 4.55, w=3.9, h=0.32)
-# fórmulas
-rect(s, 5.1, 1.25, 4.4, 1.55, fill=NAVY, radius=0.06)
-text(s, 5.3, 1.3, 4.0, 0.3, "P-valor exato bilateral", size=11.5, color=SAND, bold=True)
-picture(s, FIGS / "formula_p_exato.png", 5.3, 1.6, w=4.0, h=0.6)
-text(s, 5.3, 2.2, 4.0, 0.55, "Regra de cauda: dobrar a cauda menor (distribuição simétrica ⇒ igual a somar "
-     "as probabilidades ≤ à do valor observado).", size=9.5, color=WHITE)
-rect(s, 5.1, 2.95, 4.4, 1.25, fill=LIGHT, radius=0.06)
-text(s, 5.3, 3.0, 4.0, 0.3, "Aproximação assintótica (outro procedimento)", size=11.5, color=NAVY, bold=True)
-picture(s, FIGS / "formula_chi2.png", 5.3, 3.3, w=4.0, h=0.5)
-text(s, 5.3, 3.77, 4.0, 0.4, "“− 1” = correção de continuidade (Edwards); sem ela: (b − c)²/(b + c).",
-     size=9.5, color=GRAY)
-text(s, 5.1, 4.35, 4.4, 0.75,
-     [[("Estatística do exato: ", {"bold": True, "color": RED}),
-       "min(b, c) — convenção do statsmodels. O p-valor vem da binomial, não da curva χ²."]], size=10.5)
-notes(s, "Insistir: o teste exato e o qui-quadrado de McNemar são procedimentos diferentes; o qui-quadrado aproxima a binomial.")
-
-# =============================================================== 8. Exemplo resolvido
-s, n = new_slide()
-content_chrome(s, "Fundamentação", "Exemplo resolvido: b = 2, c = 10", n)
-steps = [
-    ("1", "Pares discordantes", "n = b + c = 2 + 10 = 12"),
-    ("2", "Distribuição sob H₀", "B ~ Binomial(12 ; 0,5)"),
-    ("3", "Cauda menor: C(12,0) + C(12,1) + C(12,2) = 1 + 12 + 66", "P(B ≤ 2) = 79 / 4096 = 0,0193"),
-    ("4", "Bilateral", "p = 2 × 0,0193 = 0,0386"),
-    ("5", "Decisão", "0,0386 < 0,05 ⇒ rejeita H₀"),
-]
-for i, (k, h, d) in enumerate(steps):
-    y = 1.28 + i * 0.66
-    badge(s, 0.5, y + 0.05, 0.42, k, fill=RED if i < 4 else TEAL, size=12)
-    text(s, 1.05, y, 3.6, 0.28, h, size=11, color=GRAY, bold=True)
-    text(s, 1.05, y + 0.26, 3.7, 0.35, d, size=12.5, color=NAVY, bold=(i == 4), font=TITLE_FONT)
-picture(s, FIGS / "binomial_b2_c10.png", 4.85, 1.25, w=4.7, h=2.6)
-callout(s, 4.95, 4.05, 4.55, 1.0, "Leitura:",
-        "se o treino não tivesse efeito, um desequilíbrio de 10 contra 2 (ou mais extremo) ocorreria em ~3,9 % das vezes.",
+content_chrome(s, "4. Formalização", "Ideia central e organização dos dados", n)
+text(s, 0.5, 1.2, 9.0, 0.6, [[("Ideia central: ", {"bold": True, "color": RED}),
+     "verificar se a proporção marginal de respostas positivas mudou de forma significativa entre duas medidas "
+     "nos mesmos indivíduos (ou em pares emparelhados), para uma variável dicotômica."]], size=11.5)
+table(s, 0.5, 1.95, 4.9, 1.7, [
+    ["", "Medida 2: +", "Medida 2: −", "Total"],
+    ["Medida 1: +", "a", "b", "a + b"],
+    ["Medida 1: −", "c", "d", "c + d"],
+    ["Total", "a + c", "b + d", "N"],
+], col_widths=[1.3, 1.2, 1.2, 1.2], size=12, highlight={(1, 2): RED, (2, 1): TEAL})
+text(s, 0.5, 3.75, 4.9, 0.6, "Cada par cai em exatamente uma de quatro combinações: (+,+), (+,−), (−,+) ou (−,−); "
+     "a + b + c + d = N.", size=10.5, color=GRAY, italic=True)
+card(s, 5.7, 1.95, 3.8, 1.25, accent=GRAY)
+text(s, 5.95, 2.0, 3.5, 1.2, [[("Concordantes: a e d", {"bold": True, "color": NAVY})],
+                              "as duas medidas coincidem."], size=11.5, spacing=4)
+card(s, 5.7, 3.35, 3.8, 1.25, accent=RED)
+text(s, 5.95, 3.4, 3.5, 1.2, [[("Discordantes: ", {"bold": True, "color": RED}),
+                              ("b", {"bold": True, "color": RED}), (" e ", {"bold": True, "color": RED}),
+                              ("c", {"bold": True, "color": TEAL})],
+                              "as duas medidas diferem."], size=11.5, spacing=4)
+callout(s, 0.5, 4.45, 9.0, 0.65, "Variável:",
+        "dicotômica (positivo/negativo) observada em N pares: mesmo indivíduo antes/depois, ou caso e controle.",
         size=11)
-notes(s, "Faça a conta no quadro. C(12,0)=1, C(12,1)=12, C(12,2)=66; 2^12=4096.")
 
-# =============================================================== 9. Interpretação
+# =============================================================== 8. Hipóteses
 s, n = new_slide()
-content_chrome(s, "Interpretação", "Significativo ou não? O desequilíbrio entre b e c decide", n)
-picture(s, FIGS / "exemplo_sig.png", 0.45, 1.2, w=5.6, h=1.9)
-picture(s, FIGS / "exemplo_nsig.png", 0.45, 3.2, w=5.6, h=1.9)
-card(s, 6.25, 1.25, 3.25, 1.75, accent=TEAL)
-text(s, 6.5, 1.3, 2.95, 1.7, [
-    [("Significativo", {"bold": True, "color": TEAL})],
-    "c = 10 × b = 2 (n = 12)",
-    [("p = 0,039 < 0,05", {"bold": True})],
-    "Mais alunos melhoraram do que pioraram.",
-], size=11, spacing=3)
-card(s, 6.25, 3.2, 3.25, 1.2, accent=MID_GRAY)
-text(s, 6.5, 3.25, 2.95, 1.15, [
-    [("Não significativo", {"bold": True, "color": GRAY})],
-    "c = 9 × b = 5 (n = 14)",
-    [("p = 0,424", {"bold": True}), " — compatível com acaso."],
-], size=11, spacing=3)
-rect(s, 6.25, 4.5, 3.25, 0.62, fill=NAVY, radius=0.08)
-text(s, 6.4, 4.5, 3.0, 0.62, [[("Evidência ≠ efeito prático: ", {"bold": True, "color": SAND}),
-                              ("relate também c − b em p.p. e a razão c/b.", {"color": WHITE})]],
-     size=10, anchor=MSO_ANCHOR.MIDDLE)
-notes(s, "Mesma ideia, dois resultados. Pares concordantes (a=20, d≈6-8) são idênticos; o que muda é b versus c.")
+content_chrome(s, "4.3 Hipóteses", "Formulação das hipóteses", n)
+table(s, 0.5, 1.25, 4.1, 1.45, [
+    ["", "Medida 2: +", "Medida 2: −", "Total"],
+    ["Medida 1: +", "π₁₁", "π₁₀", "π₁₊"],
+    ["Medida 1: −", "π₀₁", "π₀₀", "π₀₊"],
+    ["Total", "π₊₁", "π₊₀", "1"],
+], col_widths=[1.1, 1.0, 1.0, 1.0], size=11.5, highlight={(1, 2): RED, (2, 1): TEAL})
+text(s, 0.5, 2.75, 4.1, 0.5, "1 = positivo, 0 = negativo; o 1º índice é a medida 1, o 2º a medida 2.",
+     size=9.5, color=GRAY, italic=True)
+text(s, 0.5, 3.15, 4.1, 0.3, "Estimadores", size=11.5, color=TEAL, bold=True)
+picture(s, FIGS / "f_estimadores.png", 0.5, 3.45, w=4.1, h=0.55)
+picture(s, FIGS / "f_marginais.png", 0.5, 4.1, w=4.1, h=0.35)
+picture(s, FIGS / "f_marginais_amostra.png", 0.5, 4.55, w=3.3, h=0.55)
+card(s, 4.9, 1.25, 4.6, 1.15, accent=NAVY)
+text(s, 5.15, 1.3, 4.3, 0.3, "Proporções marginais", size=11.5, color=NAVY, bold=True)
+picture(s, FIGS / "f_h_marginais.png", 5.15, 1.7, w=4.2, h=0.45)
+text(s, 4.9, 2.55, 4.6, 0.3, "Reescrevendo e cancelando o termo comum π₁₁:", size=11, color=GRAY)
+picture(s, FIGS / "f_h_cancela.png", 5.15, 2.9, w=3.0, h=0.32)
+rect(s, 4.9, 3.35, 4.6, 0.75, fill=NAVY, radius=0.06)
+picture(s, FIGS / "f_h_discordantes_branco.png", 5.05, 3.45, w=4.3, h=0.55)
+text(s, 4.9, 4.2, 4.6, 0.95, [[("O teste usa só b e c ", {"bold": True, "color": RED}),
+     "(π₁₀ e π₀₁ são estimados por b/N e c/N). Sob H₀ esperamos b ≈ c; a e d não contribuem para a diferença "
+     "entre as marginais."]], size=10.5)
 
-# =============================================================== 10. Exato x assintótico
+# =============================================================== 9. Estatística do teste
 s, n = new_slide()
-content_chrome(s, "Interpretação", "Teste exato × aproximação qui-quadrado", n)
-picture(s, FIGS / "exato_vs_assintotico.png", 0.45, 1.2, w=5.4, h=2.9)
-table(s, 6.05, 1.35, 3.45, 1.5, [
-    ["b = 1, c = 7", "estat.", "p"],
-    ["Exato (binomial)", "min = 1", "0,070"],
-    ["χ² sem correção", "4,50", "0,034"],
-    ["χ² com correção", "3,13", "0,077"],
-], col_widths=[1.45, 0.95, 1.05], size=10.5, highlight={(2, 2): RED, (1, 2): TEAL})
-text(s, 6.05, 2.95, 3.45, 1.1,
-     "Com só 8 pares discordantes, o χ² sem correção rejeitaria H₀; o exato não. As faixas laranja marcam essas divergências.",
-     size=10.5, color=TEXT)
-callout(s, 0.5, 4.25, 9.0, 0.82, "Regra prática:",
-        "com poucos pares discordantes (b + c < 25, regra usual) use o exato — ele é sempre válido. "
-        "Com dezenas de pares, os métodos convergem.", size=11.5)
-notes(s, "O artigo declara 'McNemar's exact test' e imprime um X²; com 50 a 106 pares discordantes as conclusões coincidem.")
+content_chrome(s, "4.4 Estatística do teste", "Dos pares discordantes à estatística χ²", n)
+text(s, 0.5, 1.2, 4.4, 0.85, [
+    "Condicionamos no total de discordantes n = b + c.",
+    "B conta quantos dos n discordantes são do tipo (+, −); a chance de um discordante ser desse tipo é:",
+], size=11, spacing=3)
+picture(s, FIGS / "f_p_direcao.png", 0.5, 2.1, w=4.3, h=0.55)
+text(s, 0.5, 2.75, 4.4, 0.3, "Sob H₀, condicionando em n:", size=11, color=GRAY)
+picture(s, FIGS / "f_b_binomial.png", 0.5, 3.05, w=4.3, h=0.55)
+callout(s, 0.5, 3.85, 4.4, 1.25, "n suficientemente grande",
+        "(regra usual: n ≥ 25): a binomial é bem aproximada pela normal.", size=11)
+text(s, 5.15, 1.2, 4.35, 0.3, "Padronizando B no valor observado b:", size=11, color=GRAY)
+picture(s, FIGS / "f_z.png", 5.15, 1.55, w=4.35, h=1.05)
+text(s, 5.15, 2.75, 4.35, 0.6, "O quadrado de uma normal padrão tem distribuição qui-quadrado com 1 grau de liberdade:",
+     size=11, color=TEXT)
+rect(s, 5.15, 3.45, 4.35, 1.1, fill=NAVY, radius=0.06)
+picture(s, FIGS / "f_chi2_branco.png", 5.3, 3.55, w=2.6, h=0.9)
+text(s, 7.9, 3.45, 1.5, 1.1, "1 gl", size=16, color=SAND, bold=True, anchor=MSO_ANCHOR.MIDDLE, font=TITLE_FONT)
+text(s, 5.15, 4.65, 4.35, 0.45, "Estatística do teste de McNemar (versão clássica).", size=10.5, color=RED, bold=True)
 
-# =============================================================== 11. Bloco II
+# =============================================================== 10. Variantes
+s, n = new_slide()
+content_chrome(s, "Variantes", "Quatro versões do teste", n)
+text(s, 0.5, 1.15, 9.0, 0.4, "A aproximação qui-quadrado depende de haver pares discordantes suficientes; "
+     "as variantes cobrem os demais cenários.", size=11, color=GRAY)
+heads = ["Versão", "Estatística", "Quando usar"]
+xs, ws = [0.5, 2.6, 5.75], [2.0, 3.05, 3.75]
+for x, w_, h in zip(xs, ws, heads):
+    rect(s, x, 1.6, w_, 0.36, fill=NAVY)
+    text(s, x + 0.1, 1.6, w_ - 0.2, 0.36, h, size=11, color=WHITE, bold=True, anchor=MSO_ANCHOR.MIDDLE)
+variants = [
+    ("Clássica (assintótica)", "f_v_classica.png", "b + c ≥ 25 · χ² com 1 gl", TEAL),
+    ("Com correção de continuidade (Edwards, 1948)", "f_v_edwards.png",
+     "b + c ≥ 25, para corrigir a binomial discreta × χ² contínua. Mais conservadora; é a do R (mcnemar.test).", NAVY),
+    ("Exata (binomial)", "f_v_exata.png",
+     "b + c < 25. X ~ Bin(n; 0,5), k = min(b, c), n = b + c. Sem aproximação, mas conservadora.", RED),
+    ("Mid-p exata", "f_v_midp.png",
+     "b + c < 25, quando se quer um teste menos conservador e com mais poder que o exato.", ORANGE),
+]
+for i, (name, fig, when, col) in enumerate(variants):
+    y = 1.98 + i * 0.68
+    rect(s, 0.5, y, 9.0, 0.66, fill=LIGHT if i % 2 == 0 else WHITE)
+    rect(s, 0.5, y, 0.07, 0.66, fill=col)
+    text(s, 0.65, y, 1.9, 0.66, name, size=10.5, color=col, bold=True, anchor=MSO_ANCHOR.MIDDLE)
+    fh = 0.54 if "exata" not in fig and "midp" not in fig else 0.27
+    picture(s, FIGS / fig, 2.7, y + (0.66 - fh) / 2, w=2.85, h=fh)
+    text(s, 5.85, y, 3.6, 0.66, when, size=9.5, color=TEXT, anchor=MSO_ANCHOR.MIDDLE)
+callout(s, 0.5, 4.72, 9.0, 0.5, "Na prática:",
+        "com muitos discordantes, as quatro dão resultados muito próximos; com poucos, prefira a exata ou a mid-p. "
+        "Informe sempre a versão usada.", size=10.5)
+notes(s, "A fórmula exata p = 2·P(X ≤ k) é limitada a 1 quando b = c (o código usa min(1, ·)).")
+
+# =============================================================== 11. A variante exata
+s, n = new_slide()
+content_chrome(s, "4.1 A variante exata", "Por que a distribuição binomial?", n)
+card(s, 0.5, 1.25, 4.3, 1.45, accent=NAVY)
+text(s, 0.75, 1.3, 4.0, 1.4, [
+    [("Alternativa ao assintótico ", {"bold": True, "color": NAVY}), "quando há poucos discordantes (regra geral: n < 25)."],
+    [("Clássico: ", {"bold": True}), "aproximação pela qui-quadrado."],
+    [("Exato: ", {"bold": True, "color": RED}), "usa diretamente a distribuição binomial."],
+], size=11, spacing=4)
+text(s, 0.5, 2.85, 4.3, 0.3, "O teste só olha para quem mudou de resposta:", size=11, color=GRAY)
+chevron(s, 0.5, 3.2, 2.1, 0.55, "+ → −   (b)", fill=RED, size=12, first=True)
+chevron(s, 2.6, 3.2, 2.1, 0.55, "− → +   (c)", fill=TEAL, size=12, first=True)
+text(s, 0.5, 3.9, 4.3, 1.2, [
+    [("Logo: ", {"bold": True}), "X ~ Bin(n; 0,5), com n = b + c."],
+    "O número de tentativas é o total de pares discordantes.",
+], size=11.5, spacing=4)
+text(s, 5.1, 1.25, 4.4, 0.3, "A lógica de um experimento binomial", size=12, color=TEAL, bold=True)
+bullets(s, 5.1, 1.6, 4.4, 2.1, [
+    "Existem duas possibilidades (positivo e negativo).",
+    "Cada observação tem uma probabilidade de ocorrência.",
+    "Sob H₀, essa probabilidade é 0,5 para cada direção.",
+    "Os pares são considerados independentes entre si.",
+], size=11, spacing=5)
+callout(s, 5.1, 3.8, 4.4, 1.3, "Atenção:",
+        "o 0,5 não significa que metade da população é positiva. Significa que, entre os discordantes, "
+        "as duas direções de mudança são igualmente prováveis sob H₀.", size=10.5)
+
+# =============================================================== 12. Fórmula binomial
+s, n = new_slide()
+content_chrome(s, "4.1 A variante exata", "A fórmula binomial no McNemar exato", n)
+text(s, 0.5, 1.2, 4.4, 0.3, "Função de probabilidade binomial", size=11.5, color=TEAL, bold=True)
+picture(s, FIGS / "f_pmf.png", 0.5, 1.55, w=4.0, h=0.6)
+table(s, 0.5, 2.35, 4.4, 1.9, [
+    ["Símbolo", "Significado no McNemar"],
+    ["n", "Total de pares discordantes: b + c"],
+    ["k", "Discordantes em uma direção: k = min(b, c)"],
+    ["p", "Prob. de mudança nessa direção (0,5 sob H₀)"],
+    ["q", "Prob. da direção contrária (0,5 sob H₀)"],
+], col_widths=[0.8, 3.6], size=10.5)
+text(s, 5.2, 1.2, 4.3, 0.3, "Sob H₀ (p = q = 0,5):", size=11.5, color=TEAL, bold=True)
+picture(s, FIGS / "f_pmf05.png", 5.2, 1.55, w=4.3, h=0.6)
+rect(s, 5.2, 2.4, 4.3, 1.15, fill=NAVY, radius=0.06)
+text(s, 5.35, 2.43, 4.0, 0.3, "P-valor exato bilateral", size=11, color=SAND, bold=True)
+picture(s, FIGS / "f_pvalor_branco.png", 5.35, 2.75, w=4.0, h=0.72)
+callout(s, 5.2, 3.75, 4.3, 0.9, "Origem:", "esta é a origem matemática do teste exato de McNemar.", size=11)
+notes(s, "Somamos a cauda até k = min(b, c) e dobramos, porque a binomial com p = 0,5 é simétrica.")
+
+# =============================================================== 13. Limites
+s, n = new_slide()
+content_chrome(s, "Limites", "Quando não usar o McNemar", n)
+text(s, 0.5, 1.25, 9.0, 0.5, "Se o estudo tiver amostras independentes, mais de duas medições ou mais de duas "
+     "categorias, use outro teste:", size=12, color=TEXT)
+lims = [("Grupos independentes", "Qui-quadrado ou teste de Fisher", NAVY),
+        ("Mais de duas medições", "Q de Cochran", TEAL),
+        ("Mais de duas categorias", "Teste de Bowker", ORANGE)]
+for i, (sit, test, col) in enumerate(lims):
+    x = 0.5 + i * 3.05
+    card(s, x, 2.0, 2.85, 2.2, accent=col)
+    text(s, x + 0.25, 2.1, 2.5, 0.3, "Situação", size=10, color=GRAY)
+    text(s, x + 0.25, 2.38, 2.5, 0.65, sit, size=14, color=NAVY, bold=True)
+    arrow(s, x + 0.25, 3.12, 0.35, 0.2, fill=col)
+    text(s, x + 0.7, 3.0, 2.0, 0.3, "Sugestão", size=10, color=GRAY)
+    text(s, x + 0.25, 3.4, 2.5, 0.7, test, size=13.5, color=col, bold=True)
+rect(s, 0.5, 4.45, 9.0, 0.65, fill=RED, radius=0.1)
+text(s, 0.5, 4.45, 9.0, 0.65, "McNemar: mesmos indivíduos · duas medições · duas categorias",
+     size=14, color=WHITE, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+
+# =============================================================== 14–15. Ilustração #1
+s, n = new_slide()
+content_chrome(s, "Ilustração #1 — McNemar clássico", "Uma monitoria melhorou o desempenho?", n)
+text(s, 0.5, 1.2, 4.5, 0.9, "Um professor aplicou uma avaliação antes e outra depois de uma monitoria de Estatística "
+     "aos mesmos 100 alunos. α = 5 %.", size=11.5)
+table(s, 0.5, 2.15, 4.5, 1.35, [
+    ["", "Depois: aprovado", "Depois: reprovado"],
+    ["Antes: aprovado", "45", "10"],
+    ["Antes: reprovado", "30", "15"],
+], col_widths=[1.5, 1.5, 1.5], size=12, highlight={(1, 2): RED, (2, 1): TEAL})
+text(s, 0.5, 3.6, 4.5, 0.3, "SINTÉTICO — exemplo didático do roteiro", size=9, color=MID_GRAY, italic=True)
+text(s, 5.3, 1.2, 4.2, 0.3, "Etapa 1 — Identificando os valores", size=12, color=RED, bold=True)
+bullets(s, 5.3, 1.55, 4.2, 2.0, [
+    [("a = 45 ", {"bold": True}), "aprovados nas duas avaliações"],
+    [("b = 10 ", {"bold": True, "color": RED}), "aprovados antes, reprovados depois"],
+    [("c = 30 ", {"bold": True, "color": TEAL}), "reprovados antes, aprovados depois"],
+    [("d = 15 ", {"bold": True}), "reprovados nas duas avaliações"],
+    [("n = b + c = 40 ", {"bold": True, "color": NAVY}), "alunos que mudaram de resultado"],
+], size=11, spacing=4)
+card(s, 0.5, 3.95, 9.0, 1.15, accent=NAVY)
+text(s, 0.75, 4.0, 8.6, 0.3, "Etapa 2 — Formulando as hipóteses", size=12, color=NAVY, bold=True)
+text(s, 0.75, 4.32, 8.6, 0.75, [
+    [("H₀: π₁₊ = π₊₁ ", {"bold": True}), "— não há diferença nas proporções marginais de aprovados após a monitoria"],
+    [("H₁: π₁₊ ≠ π₊₁ ", {"bold": True}), "— há diferença nas proporções marginais de aprovados após a monitoria"],
+], size=11, spacing=2)
+
+s, n = new_slide()
+content_chrome(s, "Ilustração #1 — McNemar clássico", "Etapa 3: aplicando o McNemar clássico", n)
+steps = [("3.1", "Estatística do teste", "f_ex1_chi2.png"),
+         ("3.2", "Valor crítico (α = 0,05; gl = 1)", "f_ex1_crit.png")]
+for i, (k, h, fig) in enumerate(steps):
+    y = 1.25 + i * 1.0
+    badge(s, 0.5, y + 0.05, 0.45, k, fill=RED, size=10)
+    text(s, 1.1, y, 3.6, 0.3, h, size=11, color=GRAY, bold=True)
+    picture(s, FIGS / fig, 1.1, y + 0.32, w=3.5, h=0.6 if "chi2" in fig else 0.45)
+badge(s, 0.5, 3.3, 0.45, "3.3", fill=RED, size=10)
+text(s, 1.1, 3.25, 3.7, 0.3, "P-valor (recurso computacional)", size=11, color=GRAY, bold=True)
+text(s, 1.1, 3.55, 3.7, 0.35, "p-valor = 0,001565", size=15, color=NAVY, bold=True, font=TITLE_FONT)
+text(s, 1.1, 3.9, 3.7, 0.4, "A tabela qui-quadrado dá valores críticos, não o p-valor exato.", size=9.5,
+     color=GRAY, italic=True)
+picture(s, FIGS / "chi2_monitoria.png", 4.95, 1.2, w=4.55, h=2.6)
+rect(s, 0.5, 4.35, 9.0, 0.78, fill=NAVY, radius=0.06)
+text(s, 0.7, 4.35, 8.6, 0.78, [[("3.4 Conclusão: ", {"bold": True, "color": SAND}),
+     ("3,841 < 10 e 0,001565 < 0,05 ⇒ rejeita-se H₀. Aprovados passaram de 55 % para 75 %: "
+      "a monitoria foi associada a um aumento na aprovação.", {"color": WHITE})]],
+     size=11.5, anchor=MSO_ANCHOR.MIDDLE)
+notes(s, "Proporções: antes (a+b)/N = 55/100; depois (a+c)/N = 75/100. "
+         "O roteiro escreve 'houveram mudanças'; na fala, use 'houve mudança'.")
+
+# =============================================================== 16–17. Ilustração #2
+s, n = new_slide()
+content_chrome(s, "Ilustração #2 — McNemar exato", "A campanha mudou a intenção de compra?", n)
+text(s, 0.5, 1.2, 4.5, 0.9, "Uma empresa entrevistou 100 consumidores antes e depois de uma campanha publicitária. "
+     "α = 5 %.", size=11.5)
+table(s, 0.5, 2.15, 4.5, 1.35, [
+    ["", "Depois: compraria", "Depois: não compraria"],
+    ["Antes: compraria", "42", "3"],
+    ["Antes: não compraria", "12", "43"],
+], col_widths=[1.5, 1.5, 1.5], size=11.5, highlight={(1, 2): RED, (2, 1): TEAL})
+text(s, 0.5, 3.6, 4.5, 0.3, "SINTÉTICO — exemplo didático do roteiro", size=9, color=MID_GRAY, italic=True)
+text(s, 5.3, 1.2, 4.2, 0.3, "Etapa 1 — Identificando os valores", size=12, color=RED, bold=True)
+bullets(s, 5.3, 1.55, 4.2, 2.0, [
+    [("a = 42 ", {"bold": True}), "comprariam independente da campanha"],
+    [("b = 3 ", {"bold": True, "color": RED}), "comprariam, passaram a não comprar"],
+    [("c = 12 ", {"bold": True, "color": TEAL}), "não comprariam, passaram a comprar"],
+    [("d = 43 ", {"bold": True}), "não comprariam independente da campanha"],
+    [("n = b + c = 15 ", {"bold": True, "color": NAVY}), "mudaram de opinião (n < 25 ⇒ exato)"],
+], size=11, spacing=4)
+card(s, 0.5, 3.95, 9.0, 1.15, accent=NAVY)
+text(s, 0.75, 4.0, 8.6, 0.3, "Etapa 2 — Formulando as hipóteses", size=12, color=NAVY, bold=True)
+text(s, 0.75, 4.32, 8.6, 0.75, [
+    [("H₀: π₁₊ = π₊₁ ", {"bold": True}), "— não há diferença nas proporções de quem compraria antes e depois da publicidade"],
+    [("H₁: π₁₊ ≠ π₊₁ ", {"bold": True}), "— há diferença nas proporções de quem compraria antes e depois da publicidade"],
+], size=11, spacing=2)
+
+s, n = new_slide()
+content_chrome(s, "Ilustração #2 — McNemar exato", "Etapa 3: calculando o p-valor exato", n)
+picture(s, FIGS / "f_ex2_p.png", 0.5, 1.2, w=4.4, h=0.75)
+text(s, 0.5, 1.95, 4.4, 0.3, "onde n = 15 e k = 3:", size=10.5, color=GRAY)
+probs = [["i", "P(X = i) = C(15, i) · 0,5ⁱ · 0,5¹⁵⁻ⁱ"],
+         ["0", "3,052 · 10⁻⁵"], ["1", "4,578 · 10⁻⁴"], ["2", "3,204 · 10⁻³"], ["3", "1,389 · 10⁻²"],
+         ["P(X ≤ 3)", "0,0175"], ["2 · P(X ≤ 3)", "0,03516"]]
+table(s, 0.5, 2.3, 4.4, 2.0, probs, col_widths=[1.2, 3.2], size=10.5, highlight={(6, 1): RED})
+picture(s, FIGS / "binomial_b3_c12.png", 5.1, 1.2, w=4.4, h=3.05)
+rect(s, 0.5, 4.4, 9.0, 0.75, fill=NAVY, radius=0.06)
+text(s, 0.7, 4.4, 8.6, 0.75, [[("Conclusão: ", {"bold": True, "color": SAND}),
+     ("0,03516 < 0,05 ⇒ rejeita-se H₀. A intenção de compra passou de 45 % para 54 %: "
+      "a campanha foi associada a um aumento na intenção de compra.", {"color": WHITE})]],
+     size=11.5, anchor=MSO_ANCHOR.MIDDLE)
+notes(s, "P(X ≤ 3) = 576/32768 = 0,017578 (o roteiro trunca para 0,0175); 2 × 0,017578 = 0,03516. "
+         "Antes: (42+3)/100 = 45 %; depois: (42+12)/100 = 54 %. "
+         "As áreas vermelhas do gráfico são as duas caudas somadas no p-valor.")
+
+# =============================================================== 18. Bloco II
 section_slide("Bloco II", "O estudo Safe Fall",
               ["Contexto e desenho quase experimental", "As cinco respostas motoras", "McNemar aplicado à Tabela 1"])
 
-# =============================================================== 12. Artigo / contexto
+# =============================================================== 19. Artigo / contexto
 s, n = new_slide()
 content_chrome(s, "O artigo", "Ensinar crianças a cair para trás com segurança", n)
 text(s, 0.5, 1.2, 5.0, 0.75,
@@ -315,7 +471,7 @@ text(s, 6.0, 3.95, 3.45, 1.15, [
 ], size=10.5, spacing=4)
 source_note(s, "Fonte: " + ARTICLE)
 
-# =============================================================== 13. Desenho / linha do tempo
+# =============================================================== 20. Desenho / linha do tempo
 s, n = new_slide()
 content_chrome(s, "Metodologia", "Desenho do estudo: as mesmas crianças, antes e depois", n)
 steps = [("Aula teórica", "1 h — quedas na infância", GRAY), ("Pré-teste", "INFOSECA", NAVY),
@@ -349,7 +505,7 @@ text(s, 6.75, 3.0, 2.7, 2.1, [
     "Ambiente de laboratório, só queda para trás.",
 ], size=10.5, spacing=3)
 
-# =============================================================== 14. Cinco respostas
+# =============================================================== 21. Cinco respostas
 s, n = new_slide()
 content_chrome(s, "Variáveis", "As cinco respostas motoras avaliadas (INFOSECA)", n)
 picture(s, FIGS / "esquema_respostas.png", 0.9, 1.12, w=8.2, h=1.82)
@@ -373,7 +529,7 @@ for i, (h, desc, goal, kappa) in enumerate(resp):
     ], size=9.5, spacing=3)
 source_note(s, "Esquema conceitual elaborado para fins didáticos a partir da descrição da escala INFOSECA (Apêndice A); não é instrução de execução sem supervisão.")
 
-# =============================================================== 15. Por que McNemar
+# =============================================================== 22. Por que McNemar
 s, n = new_slide()
 content_chrome(s, "McNemar no artigo", "Por que o teste de McNemar é adequado aqui?", n)
 reasons = ["Mesmas 122 crianças", "Duas observações por criança", "Uma variável dicotômica por comportamento",
@@ -400,7 +556,7 @@ bullets(s, 5.0, 2.8, 4.35, 2.3, [
 ], size=10.5, spacing=5)
 notes(s, "O qui-quadrado de independência só seria válido para grupos distintos de crianças.")
 
-# =============================================================== 16. Resultados publicados
+# =============================================================== 23. Resultados publicados
 s, n = new_slide()
 content_chrome(s, "Resultados publicados", "Mais crianças passaram a cair de forma protegida", n)
 picture(s, FIGS / "pre_post_publicado.png", 0.4, 1.15, w=6.3, h=3.4)
@@ -420,7 +576,7 @@ text(s, 7.12, 3.47, 2.33, 1.62, [
 callout(s, 0.5, 4.62, 6.2, 0.5, "Atenção:", "% recalculadas como contagem/122 (ver auditoria a seguir).", size=10.5)
 source_note(s, "Dados: Tabela 1 de " + ARTICLE)
 
-# =============================================================== 17. Auditoria Tabela 1
+# =============================================================== 24. Auditoria Tabela 1
 s, n = new_slide()
 content_chrome(s, "Conferência", "Tabela 1 conferida: valores publicados × recalculados", n)
 data = [["Comportamento", "Pré: n (% impressa)", "% = n/122", "Pós: n (% impressa)", "% = n/122", "X²", "p"],
@@ -442,7 +598,7 @@ items = [
 bullets(s, 0.5, 3.55, 9.0, 1.6, items, size=10.5, spacing=4)
 source_note(s, "Valores impressos preservados sem correção; recálculo em safe_fall_statistics.data_validation.audit_table1.")
 
-# =============================================================== 18. Do X² às tabelas 2x2
+# =============================================================== 25. Do X² às tabelas 2x2
 s, n = new_slide()
 content_chrome(s, "McNemar no artigo", "As margens não bastam — mas o X² publicado revela b e c", n)
 text(s, 0.5, 1.2, 4.4, 0.9, [
@@ -470,7 +626,7 @@ text(s, 5.35, 3.83, 4.1, 1.25, [
 source_note(s, "Inferência algébrica a partir da Tabela 1 (safe_fall_statistics.reconstruction); microdados não disponíveis.")
 notes(s, "Ponto alto: o SPSS reporta o qui-quadrado corrigido para McNemar. Invertendo a fórmula recuperamos b+c.")
 
-# =============================================================== 19. Limitações
+# =============================================================== 26. Limitações
 s, n = new_slide()
 content_chrome(s, "Leitura crítica", "Limitações: o que o estudo mostra — e o que não mostra", n)
 lims = [
@@ -489,11 +645,11 @@ for i, (h, d) in enumerate(lims):
 text(s, 0.5, 5.15, 9, 0.3, "A conclusão segura: houve mudança estatisticamente significativa na resposta motora observada após o programa.",
      size=10.5, color=RED, bold=True, italic=True)
 
-# =============================================================== 20. Bloco III
+# =============================================================== 27. Bloco III
 section_slide("Bloco III", "Demonstração em Python",
-              ["Notebook reprodutível", "Demonstração interativa", "Outro contexto: educação"])
+              ["Notebook reprodutível", "As ilustrações no Python", "Demonstração interativa no Colab"])
 
-# =============================================================== 21. Notebook
+# =============================================================== 28. Notebook
 s, n = new_slide()
 content_chrome(s, "Implementação", "Notebook 01_mcnemar_safe_fall.ipynb", n)
 etapas = ["Dados", "Exploração", "Tabela 2×2", "Hipóteses", "Cálculo manual", "Bibliotecas",
@@ -508,9 +664,9 @@ code = [
     "from statsmodels.stats.contingency_tables import mcnemar",
     "from scipy.stats import binomtest",
     "",
-    "tab = [[15, 3], [13, 9]]          # [[a, b], [c, d]]",
-    "res = mcnemar(tab, exact=True)    # p = 0,0213",
-    "binomtest(3, 3 + 13, 0.5).pvalue  # p = 0,0213 ✓",
+    "tab = [[42, 3], [12, 43]]         # Ilustração #2",
+    "res = mcnemar(tab, exact=True)    # p = 0,03516",
+    "binomtest(3, 3 + 12, 0.5).pvalue  # p = 0,03516 ✓",
 ]
 text(s, 0.65, 2.72, 4.6, 1.65, code, size=9.5, color=WHITE, font=MONO_FONT, spacing=1)
 text(s, 0.5, 4.5, 4.85, 0.6, [[("Validação tripla: ", {"bold": True, "color": TEAL}),
@@ -527,20 +683,20 @@ for i, (m, d) in enumerate(mods):
     y = 1.66 + i * 0.32
     text(s, 5.8, y, 1.75, 0.32, m + ".py", size=9, color=NAVY, bold=True, font=MONO_FONT)
     text(s, 7.6, y, 1.85, 0.32, d, size=9.5, color=GRAY)
-text(s, 5.8, 4.62, 3.6, 0.4, [[("40 testes automatizados", {"bold": True, "color": TEAL}), " (pytest)"]], size=10.5)
+text(s, 5.8, 4.62, 3.6, 0.4, [[("44 testes automatizados", {"bold": True, "color": TEAL}), " (pytest)"]], size=10.5)
 
-# =============================================================== 22. Demo interativa
+# =============================================================== 29. Demo interativa
 s, n = new_slide()
 content_chrome(s, "Demonstração", "Demonstração interativa: mova b e c", n)
-for i, (lab, val, col) in enumerate([("c — melhoraram (I→C)", 13, TEAL), ("b — pioraram (C→I)", 3, RED)]):
+for i, (lab, val, col) in enumerate([("c — (−, +)", 12, TEAL), ("b — (+, −)", 3, RED)]):
     y = 1.3 + i * 0.42
     text(s, 0.5, y, 1.9, 0.3, lab, size=10, color=NAVY, bold=True)
     rect(s, 2.45, y + 0.12, 2.6, 0.06, fill=BORDER)
     rect(s, 2.45, y + 0.12, 2.6 * val / 40, 0.06, fill=col)
     badge(s, 2.45 + 2.6 * val / 40 - 0.09, y + 0.06, 0.18, "", fill=col)
     text(s, 5.15, y, 0.4, 0.3, str(val), size=10.5, color=col, bold=True)
-picture(s, FIGS / "demo_b3_c13.png", 0.45, 2.15, w=6.2, h=2.3)
-text(s, 0.5, 4.5, 6.1, 0.6, "Saída do widget (ipywidgets) para b = 3, c = 13: tabela, nº de pares discordantes, estatística, "
+picture(s, FIGS / "demo_b3_c12.png", 0.45, 2.15, w=6.2, h=2.3)
+text(s, 0.5, 4.5, 6.1, 0.6, "Saída do widget (ipywidgets) na Ilustração #2 (b = 3, c = 12): tabela, nº de pares discordantes, estatística, "
      "p exato, binomial sob H₀ e interpretação — tudo se atualiza ao mover os controles.", size=10, color=GRAY, italic=True)
 card(s, 6.85, 1.25, 2.65, 3.85, accent=TEAL)
 text(s, 7.07, 1.3, 2.4, 0.3, "Experimente no Colab", size=11.5, color=TEAL, bold=True)
@@ -549,55 +705,17 @@ text(s, 7.07, 3.1, 2.4, 0.4, [[("github.com/RodrigoSantosB/", {"size": 8.5}), ("
      size=8.5, color=NAVY, align=PP_ALIGN.CENTER, font=MONO_FONT)
 text(s, 7.07, 3.5, 2.4, 1.6, [
     [("b = c: ", {"bold": True}), "p = 1 — sem evidência."],
-    [("b = 3, c = 13: ", {"bold": True}), "p = 0,021."],
+    [("b = 3, c = 12: ", {"bold": True}), "p = 0,035."],
     [("Mude a e d: ", {"bold": True, "color": RED}), "o p-valor não muda."],
 ], size=10, spacing=4)
-source_note(s, "Dados SINTÉTICOS. Notebook: Etapa 9a (este widget) e Etapa 12 (abas com todos os exemplos dos slides, ajustáveis).")
+source_note(s, "Dados SINTÉTICOS. Notebook: Etapa 9a (este widget) e Etapa 12 (abas com as ilustrações, as variantes e o Safe Fall, ajustáveis).")
 
-# =============================================================== 23. Variação do p-valor
-s, n = new_slide()
-content_chrome(s, "Demonstração", "Como o desequilíbrio entre b e c move o p-valor", n)
-picture(s, FIGS / "pvalor_vs_c.png", 0.4, 1.2, w=5.9, h=3.3)
-text(s, 0.5, 4.55, 5.8, 0.55, "Com n = 20 pares discordantes fixos, p < 0,05 só quando c ≤ 5 ou c ≥ 15.",
-     size=10.5, color=GRAY, italic=True)
-card(s, 6.55, 1.25, 2.95, 3.85, accent=RED)
-text(s, 6.78, 1.3, 2.7, 3.8, [
-    [("O que governa o p-valor", {"bold": True, "color": RED})],
-    [("Desequilíbrio ", {"bold": True}), "|c − b|: quanto maior, menor o p."],
-    [("Quantidade ", {"bold": True}), "b + c: o mesmo 75 % de melhoras é mais convincente com 40 pares do que com 8."],
-    [("Ignorados: ", {"bold": True}), "a e d — mesmo que sejam milhares."],
-    [("Safe Fall: ", {"bold": True, "color": TEAL}), "84 contra 2 (pescoço) fica muito além da região crítica."],
-], size=10.5, spacing=6)
-source_note(s, "Curva calculada com safe_fall_statistics.mcnemar_analysis.exact_pvalue_manual (exemplo teórico).")
-
-# =============================================================== 24. Educação
-s, n = new_slide()
-content_chrome(s, "Outro contexto", "Mesma estrutura em educação: acertou a questão?", n)
-picture(s, FIGS / "tabela_educacao_sintetico.png", 0.4, 1.2, w=2.8, h=2.5)
-picture(s, FIGS / "fluxo_educacao_sintetico.png", 3.25, 1.2, w=3.3, h=2.5)
-text(s, 0.5, 3.75, 6.0, 0.55,
-     [[("40 alunos ", {"bold": True}), "respondem à mesma questão antes e depois de uma aula de reforço: "
-       "13 passaram a acertar, 3 passaram a errar ⇒ p exato = 0,021."]], size=10.5)
-source_note(s, "Dados SINTÉTICOS (exemplo didático), gerados por safe_fall_statistics.synthetic_data.", y=4.35, w=6)
-table(s, 6.75, 1.3, 2.75, 3.0, [
-    ["", "Safe Fall", "Educação"],
-    ["Indivíduos", "122 crianças", "40 alunos"],
-    ["Momentos", "pré / pós", "pré / pós"],
-    ["Categoria", "correto / incorreto", "acertou / errou"],
-    ["b (pioraram)", "2", "3"],
-    ["c (melhoraram)", "84", "13"],
-    ["Teste", "McNemar exato", "McNemar exato"],
-], col_widths=[0.95, 0.95, 0.85], size=9, highlight={(4, 1): RED, (4, 2): RED, (5, 1): TEAL, (5, 2): TEAL})
-text(s, 6.75, 4.35, 2.75, 0.3, "Safe Fall: pescoço, b e c inferidos", size=8, color=MID_GRAY, italic=True)
-callout(s, 0.5, 4.65, 9.0, 0.5, "Ideia-chave:",
-        "fenômenos diferentes, mesma estrutura — dados pareados, resposta dicotômica, foco nos discordantes.", size=11)
-
-# =============================================================== 25. Conclusões
+# =============================================================== 30. Conclusões
 s, n = new_slide()
 content_chrome(s, "Conclusões", "Síntese", n)
 concl = [
-    ("Teste certo para a pergunta", "Pré e pós nas mesmas crianças com resposta sim/não: McNemar compara proporções pareadas olhando só para b e c.", TEAL),
-    ("Exato é sempre válido", "Binomial(b + c; 0,5). A aproximação χ² serve para muitos pares, mas pode mudar a conclusão com poucos.", RED),
+    ("Pareado, dicotômico, só b e c", "McNemar testa H₀: π₁₊ = π₊₁ ⇔ π₁₀ = π₀₁ — a mudança marginal depende só dos pares discordantes.", TEAL),
+    ("Escolha e informe a versão", "b + c ≥ 25: χ² clássico ou com correção de Edwards. b + c < 25: exato (Bin(n; 0,5)) ou mid-p.", RED),
     ("Safe Fall: mudança robusta", "84–106 melhoras contra 0–2 pioras; p < 0,001 em qualquer método. Conclusão do artigo se sustenta.", NAVY),
     ("Leitura crítica", "Quase experimento sem controle; desfecho é comportamento, não lesão; Tabela 1 com % inconsistentes.", ORANGE),
 ]
@@ -608,7 +726,7 @@ for i, (h, d, col) in enumerate(concl):
     text(s, 1.4, y + 0.06, 7.9, 0.3, h, size=12.5, color=NAVY, bold=True)
     text(s, 1.4, y + 0.38, 7.9, 0.45, d, size=10.5, color=TEXT)
 
-# =============================================================== 26. Referências
+# =============================================================== 31. Referências
 s, n = new_slide()
 content_chrome(s, "Referências", "Principais referências", n)
 refs = [
@@ -628,7 +746,7 @@ refs = [
 ]
 bullets(s, 0.5, 1.25, 9.0, 3.9, refs, size=10.5, spacing=7)
 
-# =============================================================== 27. Encerramento (template)
+# =============================================================== 32. Encerramento (template)
 closing = clone_slide(prs, CLOSING_TPL)
 
 # remove os slides de exemplo do template original

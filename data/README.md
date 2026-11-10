@@ -24,5 +24,5 @@ O artigo **não** publica as frequências conjuntas pré×pós (`a`, `b`, `c`, `
   `safe_fall_statistics.reconstruction` a partir das margens + X² publicado,
   sob a hipótese (verificável) de que o X² é o qui-quadrado de McNemar com correção de continuidade.
   Não são dados originais.
-* O exemplo de **educação** e a demonstração interativa usam dados **sintéticos**
+* As ilustrações do roteiro (monitoria e campanha) e a demonstração interativa usam dados **sintéticos**
   (`safe_fall_statistics.synthetic_data`), gerados com semente fixa e marcados como tal.

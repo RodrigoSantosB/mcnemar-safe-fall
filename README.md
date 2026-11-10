@@ -10,7 +10,7 @@ Implementation of a Safe Fall Program*, IJERPH 15:2669, [doi:10.3390/ijerph15122
 
 | Arquivo | Conteúdo |
 |---|---|
-| `slides/apresentacao_mcnemar_safe_fall.pptx` | Apresentação editável (27 slides) construída sobre o template oficial CIn-UFPE (o slide 22 tem QR code para o Colab) |
+| `slides/apresentacao_mcnemar_safe_fall.pptx` | Apresentação editável (32 slides) construída sobre o template oficial CIn-UFPE; o Bloco I segue o roteiro "Teste de McNemar" (o slide 29 tem QR code para o Colab) |
 | `notebooks/01_mcnemar_safe_fall.ipynb` | Notebook didático em 11 etapas, com demonstração interativa (já executado) |
 | `src/safe_fall_statistics/` | Módulos Python usados pelo notebook e pelos slides |
 | `data/table1_published.csv` | Tabela 1 do artigo, transcrita sem correções (ver `data/README.md`) |
@@ -30,13 +30,11 @@ A **Etapa 12** do notebook abre abas com os exemplos da apresentação, nos mesm
 
 | Aba | Slide | Controles |
 |---|---|---|
-| passo a passo | 8 | b, c — refaz o cálculo manual linha a linha |
-| sig. × não sig. | 9 | dois cenários (b, c) |
-| exato × χ² | 10 | n = b + c e b |
-| Safe Fall | 18 | comportamento e b (começa na tabela inferida; outros b mantêm as margens publicadas) |
-| demonstração | 22 | a, b, c, d |
-| p-valor × c | 23 | n e c |
-| educação | 24 | a, b, c, d |
+| variantes | 10 | b, c — p-valor das versões clássica, Edwards, exata e mid-p |
+| Ilustração #1 | 15 | a, b, c, d da monitoria — χ², valor crítico 3,841, p-valor e conclusão |
+| Ilustração #2 | 17 | a, b, c, d da campanha — P(X = i) linha a linha e p exato |
+| Safe Fall | 25 | comportamento e b (começa na tabela inferida; outros b mantêm as margens publicadas) |
+| demonstração | 29 | a, b, c, d (começa na campanha) |
 
 Fora do notebook:
 
@@ -87,14 +85,14 @@ Uma versão estática (`render(b, c)`) vem logo em seguida, para apresentações
 │   ├── data_loader.py         leitura da Tabela 1
 │   ├── data_validation.py     auditoria da Tabela 1; validação de dados pareados/ausentes
 │   ├── contingency_tables.py  PairedTable (a, b, c, d)
-│   ├── mcnemar_analysis.py    p exato manual, scipy, statsmodels; χ²; interpretação
+│   ├── mcnemar_analysis.py    p exato manual, scipy, statsmodels; mid-p; χ²; interpretação
 │   ├── reconstruction.py      inferência de b e c a partir do X² publicado
-│   ├── synthetic_data.py      exemplos SINTÉTICOS
+│   ├── synthetic_data.py      ilustrações SINTÉTICAS do roteiro
 │   ├── visualizations.py      gráficos na paleta do template
 │   ├── interactive_demo.py    widget b × c
 │   └── slide_examples.py      exemplos dos slides com controles
 ├── templates/            template oficial CIn-UFPE (.pptx); a referência visual em PDF fica só local
-└── tests/                40 testes (pytest)
+└── tests/                44 testes (pytest)
 ```
 
 ## Três tipos de dado — nunca misturados
@@ -104,7 +102,7 @@ Uma versão estática (`render(b, c)`) vem logo em seguida, para apresentações
 * **INFERIDO**: tabelas 2×2 do Safe Fall. O artigo publica só as margens, que fixam `c − b` mas não `b + c`. O X²
   impresso coincide exatamente com o McNemar com correção de continuidade, `(|c−b|−1)²/(b+c)`, o que identifica `b`
   e `c` (inteiros exatos nas 5 linhas; sem correção nenhuma linha fecha). É uma inferência, não um dado original.
-* **SINTÉTICO**: exemplo de educação (40 alunos, b = 3, c = 13) e a demonstração interativa.
+* **SINTÉTICO**: as ilustrações do roteiro — monitoria (45, 10, 30, 15) e campanha (42, 3, 12, 43) — e a demonstração interativa.
 
 ## Template
 

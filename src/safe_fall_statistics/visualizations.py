@@ -99,7 +99,8 @@ def plot_pre_post(df: pd.DataFrame, n_total: int = 122, ax=None, source: str | N
     return ax
 
 
-def plot_contingency(table: PairedTable, ax=None, title: str | None = None, labels=("Correto", "Incorreto")):
+def plot_contingency(table: PairedTable, ax=None, title: str | None = None, labels=("Correto", "Incorreto"),
+                     axis_titles=("Pré-teste", "Pós-teste")):
     """Matriz 2×2 com as células discordantes b e c destacadas."""
     if ax is None:
         _, ax = plt.subplots(figsize=(4.8, 4.2))
@@ -116,8 +117,8 @@ def plot_contingency(table: PairedTable, ax=None, title: str | None = None, labe
         ax.text(x + 0.5, y + 0.25, name, ha="center", va="center", fontsize=13, style="italic", color=fg)
     ax.set_xlim(-0.55, 2.05)
     ax.set_ylim(-0.1, 2.45)
-    ax.text(1.0, 2.3, "Pós-teste", ha="center", fontsize=12, weight="bold", color=NAVY)
-    ax.text(-0.5, 1.0, "Pré-teste", ha="center", va="center", rotation=90, fontsize=12, weight="bold", color=NAVY)
+    ax.text(1.0, 2.3, axis_titles[1], ha="center", fontsize=12, weight="bold", color=NAVY)
+    ax.text(-0.5, 1.0, axis_titles[0], ha="center", va="center", rotation=90, fontsize=12, weight="bold", color=NAVY)
     for i, lab in enumerate(labels):
         ax.text(i + 0.5, 2.08, lab, ha="center", fontsize=11, color=GRAY)
         ax.text(-0.08, 1.5 - i, lab, ha="right", va="center", fontsize=11, color=GRAY, rotation=90)
@@ -269,6 +270,31 @@ def plot_pvalue_vs_c(n: int = 20, ax=None):
     ax.set_xlabel(f"c = nº que melhoraram (b = {n} − c)")
     ax.set_ylabel("p-valor exato")
     ax.set_title(f"Equilíbrio (c ≈ b) → p alto; desequilíbrio → p baixo (n = {n})", loc="left")
+    return ax
+
+
+def plot_chi2_critical(statistic: float, ax=None, alpha: float = ALPHA):
+    """Densidade qui-quadrado com 1 gl: região crítica (α) e estatística observada."""
+    from scipy import stats
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(7.5, 3.6))
+    crit = float(stats.chi2.isf(alpha, df=1))
+    xmax = max(8.0, statistic * 1.25)
+    x = np.linspace(0.05, xmax, 600)
+    y = stats.chi2.pdf(x, df=1)
+    ax.plot(x, y, color=NAVY, lw=2)
+    ax.fill_between(x, y, where=x >= crit, color=RED, alpha=0.85, lw=0)
+    ax.axvline(crit, color=RED, ls="--", lw=1.2)
+    ax.text(crit + 0.15, 0.62, f"crítico = {crit:.3f}".replace(".", ","), color=RED, fontsize=11)
+    ax.axvline(statistic, color=TEAL, lw=2.4)
+    ax.text(statistic - 0.15, 0.45, f"χ² observado = {statistic:g}".replace(".", ","), color=TEAL, fontsize=11,
+            ha="right" if statistic > xmax * 0.6 else "left")
+    ax.set_ylim(0, 0.8)
+    ax.set_xlim(0, xmax)
+    ax.set_xlabel("χ² (1 gl)")
+    ax.set_ylabel("densidade")
+    ax.set_title(f"Região crítica (α = {alpha:.2f}) em vermelho".replace(".", ","), loc="left")
     return ax
 
 

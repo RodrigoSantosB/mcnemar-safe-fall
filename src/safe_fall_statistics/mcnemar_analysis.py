@@ -47,6 +47,22 @@ def exact_pvalue_manual(b: int, c: int) -> float:
     return float(min(Fraction(1), 2 * tail))
 
 
+def midp_pvalue(b: int, c: int) -> float:
+    """P-valor mid-p: 2 · [P(X < k) + 0,5 · P(X = k)], k = min(b, c), limitado a 1."""
+    n = b + c
+    if n == 0:
+        return 1.0
+    k = min(b, c)
+    below = Fraction(sum(comb(n, i) for i in range(k)), 2**n)
+    at = Fraction(comb(n, k), 2**n)
+    return float(min(Fraction(1), 2 * (below + at / 2)))
+
+
+def chi2_critical(alpha: float = ALPHA) -> float:
+    """Valor crítico da qui-quadrado com 1 gl (3,841 para α = 0,05)."""
+    return float(stats.chi2.isf(alpha, df=1))
+
+
 def exact_pvalue_scipy(b: int, c: int) -> float:
     """Validação independente via ``scipy.stats.binomtest`` (bilateral)."""
     if b + c == 0:
@@ -117,7 +133,7 @@ def mcnemar_exact(table: PairedTable, alpha: float = ALPHA) -> McNemarResult:
 
 
 def compare_methods(table: PairedTable) -> dict:
-    """Exato × qui-quadrado sem correção × qui-quadrado com correção de continuidade."""
+    """As quatro variantes: χ² clássico, χ² com correção de Edwards, exato e mid-p."""
     b, c = table.b, table.c
     sm_uncorr = sm_mcnemar(table.to_array(), exact=False, correction=False)
     sm_corr = sm_mcnemar(table.to_array(), exact=False, correction=True)
@@ -130,6 +146,7 @@ def compare_methods(table: PairedTable) -> dict:
         "p_chi2_sem_correcao": float(sm_uncorr.pvalue),
         "chi2_com_correcao": float(sm_corr.statistic),
         "p_chi2_com_correcao": float(sm_corr.pvalue),
+        "p_midp": midp_pvalue(b, c),
     }
 
 

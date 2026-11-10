@@ -9,13 +9,11 @@ from .contingency_tables import PairedTable
 
 SYNTHETIC_LABEL = "SINTÉTICO — exemplo didático, não é dado do estudo"
 
-EDUCATION_EXAMPLE = PairedTable(a=15, b=3, c=13, d=9)
-"""40 alunos respondem à mesma questão antes e depois de uma aula de reforço."""
+MONITORIA = PairedTable(a=45, b=10, c=30, d=15)
+"""Ilustração #1 do roteiro: 100 alunos avaliados antes e depois de uma monitoria (aprovado/reprovado)."""
 
-SMALL_SIGNIFICANT = PairedTable(a=20, b=2, c=10, d=8)
-SMALL_NOT_SIGNIFICANT = PairedTable(a=20, b=5, c=9, d=6)
-EXACT_VS_ASYMPTOTIC = PairedTable(a=10, b=1, c=7, d=12)
-"""Caso pequeno em que o qui-quadrado sem correção rejeita H0 e o exato não."""
+CAMPANHA = PairedTable(a=42, b=3, c=12, d=43)
+"""Ilustração #2 do roteiro: 100 consumidores antes e depois de uma campanha (compraria/não compraria)."""
 
 
 def individuals_from_table(table: PairedTable, seed: int = 2018, id_prefix: str = "S") -> pd.DataFrame:

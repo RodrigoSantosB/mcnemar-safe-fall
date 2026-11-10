@@ -11,15 +11,14 @@ from __future__ import annotations
 from math import comb
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 from . import visualizations as viz
 from .contingency_tables import PairedTable
 from .data_loader import N_TOTAL, load_published_table1
-from .mcnemar_analysis import ALPHA, compare_methods, format_p, interpret, mcnemar_exact
+from .mcnemar_analysis import ALPHA, chi2_critical, compare_methods, format_p, mcnemar_exact
 from .reconstruction import feasible_range, reconstruct_from_chi2
-from .synthetic_data import EDUCATION_EXAMPLE, SMALL_NOT_SIGNIFICANT, SMALL_SIGNIFICANT
+from .synthetic_data import CAMPANHA, MONITORIA
 
 MAX_CELL = 120
 _STYLE = {"description_width": "170px"}
@@ -48,111 +47,130 @@ def _panel(controls, render, note=None):
     return w.VBox(children)
 
 
-# ---------------------------------------------------------------- slide 8: cálculo passo a passo
+# ---------------------------------------------------------------- slide 10: as quatro variantes
 
-def worked_example_state(b: int, c: int) -> dict:
-    n = b + c
-    k = min(b, c)
-    terms = [comb(n, i) for i in range(k + 1)] if n else []
-    tail = sum(terms) / 2**n if n else 1.0
-    p = min(1.0, 2 * tail) if n else 1.0
-    return {"n": n, "k": k, "terms": terms, "tail": tail, "p": p, "significant": p < ALPHA}
-
-
-def worked_example_render(b: int, c: int):
-    s = worked_example_state(b, c)
-    n, k = s["n"], s["k"]
-    print(f"1. Pares discordantes      n = b + c = {b} + {c} = {n}")
-    if n == 0:
-        print("   Sem pares discordantes: nada a testar, p = 1.")
-        return s
-    print(f"2. Distribuição sob H0     B ~ Binomial({n}; 0,5)")
-    terms = s["terms"]
-    shown = " + ".join(map(str, terms)) if len(terms) <= 8 else " + ".join(map(str, terms[:4])) + " + … + " + str(terms[-1])
-    print(f"3. Cauda menor             P(B ≤ {k}) = ({shown}) / 2^{n} = {s['tail']:.6g}")
-    print(f"4. Bilateral               p = min(1; 2 × {s['tail']:.6g}) = {s['p']:.6g}")
-    verdict = "rejeita H0" if s["significant"] else "não rejeita H0"
-    print(f"5. Decisão                 {format_p(s['p'])} {'<' if s['significant'] else '≥'} 0,05 ⇒ {verdict}")
-    fig, ax = plt.subplots(figsize=(8.5, 3.6))
-    viz.plot_binomial_null(b, c, ax=ax)
-    plt.show()
-    return s
-
-
-def worked_example_tab(b: int = 2, c: int = 10):
-    return _panel({"b": _slider("b — pioraram", b, max_value=60), "c": _slider("c — melhoraram", c, max_value=60)},
-                  worked_example_render)
-
-
-# ---------------------------------------------------------------- slide 9: significativo × não
-
-def _pair_render(b1, c1, b2, c2, a=20, d=7):
-    fig, axes = plt.subplots(2, 2, figsize=(11, 6.8), gridspec_kw={"width_ratios": [1, 1.8]})
-    for row, (b, c) in enumerate(((b1, c1), (b2, c2))):
-        t = PairedTable(a, b, c, d)
-        viz.plot_contingency(t, ax=axes[row, 0])
-        viz.plot_binomial_null(b, c, ax=axes[row, 1])
-    fig.tight_layout()
-    plt.show()
-    for label, (b, c) in (("Cenário 1", (b1, c1)), ("Cenário 2", (b2, c2))):
-        print(f"{label}: " + interpret(mcnemar_exact(PairedTable(a, b, c, d))))
-
-
-def significance_tab():
-    t1, t2 = SMALL_SIGNIFICANT, SMALL_NOT_SIGNIFICANT
-    controls = {
-        "b1": _slider("Cenário 1 · b", t1.b, max_value=40), "c1": _slider("Cenário 1 · c", t1.c, max_value=40),
-        "b2": _slider("Cenário 2 · b", t2.b, max_value=40), "c2": _slider("Cenário 2 · c", t2.c, max_value=40),
-    }
-    return _panel(controls, lambda b1, c1, b2, c2: _pair_render(b1, c1, b2, c2),
-                  "Slide: cenário 1 = (b 2, c 10) → p = 0,039; cenário 2 = (b 5, c 9) → p = 0,424.")
-
-
-# ---------------------------------------------------------------- slide 10: exato × χ²
-
-def methods_state(n: int, b: int) -> pd.DataFrame:
-    b = min(b, n)
-    cmp = compare_methods(PairedTable(0, b, n - b, 0))
+def variants_state(b: int, c: int) -> pd.DataFrame:
+    cmp = compare_methods(PairedTable(0, b, c, 0))
     rows = [
-        ("Exato (binomial)", f"min = {min(b, n - b)}", cmp["p_exato"]),
-        ("χ² sem correção", f"{cmp['chi2_sem_correcao']:.2f}", cmp["p_chi2_sem_correcao"]),
-        ("χ² com correção", f"{cmp['chi2_com_correcao']:.2f}", cmp["p_chi2_com_correcao"]),
+        ("Clássica (assintótica)", f"χ² = {cmp['chi2_sem_correcao']:.3f}", cmp["p_chi2_sem_correcao"]),
+        ("Com correção (Edwards)", f"χ² = {cmp['chi2_com_correcao']:.3f}", cmp["p_chi2_com_correcao"]),
+        ("Exata (binomial)", f"k = {min(b, c)}", cmp["p_exato"]),
+        ("Mid-p exata", f"k = {min(b, c)}", cmp["p_midp"]),
     ]
-    df = pd.DataFrame(rows, columns=["método", "estatística", "p"])
+    df = pd.DataFrame(rows, columns=["versão", "estatística", "p"])
     df["rejeita H0 (5%)"] = df["p"] < ALPHA
     return df
 
 
-def methods_render(n: int, b: int):
-    b = min(b, n)
-    fig, ax = plt.subplots(figsize=(8.5, 3.8))
-    viz.plot_exact_vs_asymptotic(n=n, ax=ax)
-    ax.axvline(b, color=viz.TEAL, lw=2, alpha=0.6)
-    plt.show()
+def variants_render(b: int, c: int):
     from IPython.display import display
 
-    df = methods_state(n, b)
-    print(f"b = {b}, c = {n - b}")
-    display(df.style.format({"p": "{:.4f}"}))
+    n = b + c
+    print(f"b = {b}, c = {c}, n = b + c = {n} — "
+          + ("n ≥ 25: as aproximações χ² são adequadas." if n >= 25 else "n < 25: prefira a exata ou a mid-p."))
+    df = variants_state(b, c)
+    display(df.style.format({"p": "{:.6f}"}))
     if df["rejeita H0 (5%)"].nunique() > 1:
-        print("⚠ Os métodos levam a conclusões diferentes neste caso.")
+        print("⚠ As versões levam a conclusões diferentes neste caso.")
+    fig, ax = plt.subplots(figsize=(8.5, 3.0))
+    ax.barh(df["versão"][::-1], df["p"][::-1], color=[viz.TEAL, viz.RED, viz.ORANGE, viz.NAVY])
+    ax.axvline(ALPHA, color=viz.GRAY, ls="--", lw=1)
+    ax.set_xlabel("p-valor")
+    plt.show()
 
 
-def methods_tab(n: int = 8, b: int = 1):
-    w = _w()
-    sn = _slider("n = b + c", n, 1, 60)
-    sb = _slider("b — pioraram", b, 0, 60)
-
-    def sync(change):
-        sb.max = sn.value
-
-    sn.observe(sync, names="value")
-    sync(None)
-    return _panel({"n": sn, "b": sb}, methods_render,
-                  "Slide: n = 8, b = 1 → exato 0,070 × χ² sem correção 0,034 (faixas laranja = conclusões divergentes).")
+def variants_tab(b: int = CAMPANHA.b, c: int = CAMPANHA.c):
+    return _panel({"b": _slider("b — (+, −)", b, max_value=60), "c": _slider("c — (−, +)", c, max_value=60)},
+                  variants_render, "Começa na Ilustração #2 (b = 3, c = 12). Com muitos discordantes, as quatro convergem.")
 
 
-# ---------------------------------------------------------------- slide 18: Safe Fall (inferido)
+# ---------------------------------------------------------------- slide 15: Ilustração #1 (clássico)
+
+def classic_example_state(a: int, b: int, c: int, d: int, alpha: float = ALPHA) -> dict:
+    t = PairedTable(a, b, c, d)
+    cmp = compare_methods(t)
+    crit = chi2_critical(alpha)
+    stat, p = cmp["chi2_sem_correcao"], cmp["p_chi2_sem_correcao"]
+    return {"table": t, "n": b + c, "chi2": stat, "critical": crit, "p": p,
+            "reject": stat > crit and p < alpha,
+            "before": t.pre_correct / t.n if t.n else float("nan"),
+            "after": t.post_correct / t.n if t.n else float("nan")}
+
+
+def classic_example_render(a: int, b: int, c: int, d: int):
+    s = classic_example_state(a, b, c, d)
+    print(f"Etapa 1  a = {a}, b = {b}, c = {c}, d = {d};  n = b + c = {s['n']}")
+    print("Etapa 2  H0: π1+ = π+1   ×   H1: π1+ ≠ π+1")
+    if s["n"] == 0:
+        print("Sem pares discordantes: nada a testar.")
+        return s
+    print(f"Etapa 3.1  χ² = ({b} − {c})² / ({b} + {c}) = {(b - c) ** 2} / {s['n']} = {s['chi2']:.4g}")
+    print(f"Etapa 3.2  χ²crítico(0,05; 1) = {s['critical']:.3f}")
+    print(f"Etapa 3.3  p-valor = {s['p']:.6g}")
+    verdict = "Rejeita-se H0" if s["reject"] else "Não se rejeita H0"
+    print(f"Etapa 3.4  {verdict}. Aprovados: {s['before']:.0%} antes → {s['after']:.0%} depois.")
+    fig, axes = plt.subplots(1, 2, figsize=(13, 4), gridspec_kw={"width_ratios": [1, 1.8]})
+    viz.plot_contingency(s["table"], ax=axes[0], labels=("Aprovado", "Reprovado"), axis_titles=("Antes", "Depois"))
+    viz.plot_chi2_critical(s["chi2"], ax=axes[1])
+    fig.tight_layout()
+    plt.show()
+    return s
+
+
+def classic_example_tab():
+    t = MONITORIA
+    controls = {"a": _slider("a — aprovado → aprovado", t.a), "b": _slider("b — aprovado → reprovado", t.b),
+                "c": _slider("c — reprovado → aprovado", t.c), "d": _slider("d — reprovado → reprovado", t.d)}
+    return _panel(controls, classic_example_render, "Slide: 45, 10, 30, 15 → χ² = 10, p = 0,001565.")
+
+
+# ---------------------------------------------------------------- slide 17: Ilustração #2 (exato)
+
+def exact_example_state(a: int, b: int, c: int, d: int) -> dict:
+    t = PairedTable(a, b, c, d)
+    n, k = b + c, min(b, c)
+    probs = [comb(n, i) / 2**n for i in range(k + 1)] if n else []
+    tail = sum(probs) if n else 1.0
+    p = min(1.0, 2 * tail) if n else 1.0
+    return {"table": t, "n": n, "k": k, "probs": probs, "tail": tail, "p": p, "significant": p < ALPHA,
+            "before": t.pre_correct / t.n if t.n else float("nan"),
+            "after": t.post_correct / t.n if t.n else float("nan")}
+
+
+def exact_example_render(a: int, b: int, c: int, d: int):
+    s = exact_example_state(a, b, c, d)
+    n, k = s["n"], s["k"]
+    print(f"Etapa 1  a = {a}, b = {b}, c = {c}, d = {d};  n = b + c = {n}")
+    print("Etapa 2  H0: π1+ = π+1   ×   H1: π1+ ≠ π+1")
+    if n == 0:
+        print("Sem pares discordantes: nada a testar, p = 1.")
+        return s
+    print(f"Etapa 3.1  X ~ Bin({n}; 0,5), k = min(b, c) = {k}")
+    shown = list(enumerate(s["probs"]))
+    if len(shown) > 8:
+        shown = shown[:4] + shown[-2:]
+    for i, pr in shown:
+        print(f"   P(X = {i}) = C({n},{i}) · 0,5^{n} = {pr:.4g}")
+    print(f"   P(X ≤ {k}) = {s['tail']:.6g}")
+    print(f"   p-valor = 2 · P(X ≤ {k}) = {2 * s['tail']:.6g}" + ("  (limitado a 1)" if 2 * s["tail"] > 1 else ""))
+    verdict = "Rejeita-se H0" if s["significant"] else "Não se rejeita H0"
+    print(f"Etapa 3.2  {verdict}. Intenção de compra: {s['before']:.0%} antes → {s['after']:.0%} depois.")
+    fig, axes = plt.subplots(1, 2, figsize=(13, 4), gridspec_kw={"width_ratios": [1, 1.8]})
+    viz.plot_contingency(s["table"], ax=axes[0], labels=("Compraria", "Não compraria"), axis_titles=("Antes", "Depois"))
+    viz.plot_binomial_null(b, c, ax=axes[1])
+    fig.tight_layout()
+    plt.show()
+    return s
+
+
+def exact_example_tab():
+    t = CAMPANHA
+    controls = {"a": _slider("a — compraria → compraria", t.a), "b": _slider("b — compraria → não", t.b),
+                "c": _slider("c — não → compraria", t.c), "d": _slider("d — não → não", t.d)}
+    return _panel(controls, exact_example_render, "Slide: 42, 3, 12, 43 → n = 15, k = 3, p = 0,03516.")
+
+
+# ---------------------------------------------------------------- slide 25: Safe Fall (inferido)
 
 def safe_fall_state(variable: str, b: int | None = None) -> dict:
     df = load_published_table1()
@@ -205,55 +223,6 @@ def safe_fall_tab():
                   "Valor inicial de b = tabela inferida do artigo. Mova b para ver outras tabelas com as MESMAS margens.")
 
 
-# ---------------------------------------------------------------- slide 23: p-valor × c
-
-def pvalue_vs_c_render(n: int, c: int):
-    c = min(c, n)
-    fig, ax = plt.subplots(figsize=(8.5, 3.6))
-    viz.plot_pvalue_vs_c(n=n, ax=ax)
-    ax.bar([c], [mcnemar_exact(PairedTable(0, n - c, c, 0)).pvalue], color="none", edgecolor=viz.NAVY, lw=2.2, width=0.9)
-    plt.show()
-    r = mcnemar_exact(PairedTable(0, n - c, c, 0))
-    print(f"n = {n}, c = {c}, b = {n - c}: {format_p(r.pvalue)} — {'significativo' if r.significant else 'não significativo'}")
-
-
-def pvalue_vs_c_tab(n: int = 20, c: int = 15):
-    sn = _slider("n = b + c", n, 1, 80)
-    sc = _slider("c — melhoraram", c, 0, 80)
-
-    def sync(change):
-        sc.max = sn.value
-
-    sn.observe(sync, names="value")
-    sync(None)
-    return _panel({"n": sn, "c": sc}, pvalue_vs_c_render, "Barra contornada = cenário escolhido.")
-
-
-# ---------------------------------------------------------------- slide 24: educação
-
-def education_render(a: int, b: int, c: int, d: int):
-    t = PairedTable(a, b, c, d)
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), gridspec_kw={"width_ratios": [1, 1.4, 1.6]})
-    viz.plot_contingency(t, ax=axes[0], labels=("Acertou", "Errou"), title="[SINTÉTICO]")
-    if t.n:
-        viz.plot_transitions(t, ax=axes[1])
-    else:
-        axes[1].axis("off")
-    viz.plot_binomial_null(b, c, ax=axes[2])
-    fig.tight_layout()
-    plt.show()
-    print(f"{t.n} alunos. " + interpret(mcnemar_exact(t)))
-
-
-def education_tab():
-    e = EDUCATION_EXAMPLE
-    controls = {"a": _slider("a — acertou → acertou", e.a, max_value=80),
-                "b": _slider("b — acertou → errou", e.b, max_value=80),
-                "c": _slider("c — errou → acertou", e.c, max_value=80),
-                "d": _slider("d — errou → errou", e.d, max_value=80)}
-    return _panel(controls, education_render, "Slide: 40 alunos, b = 3, c = 13 → p = 0,021.")
-
-
 # ---------------------------------------------------------------- todas as abas
 
 def slide_examples_widget():
@@ -261,14 +230,13 @@ def slide_examples_widget():
     from .interactive_demo import mcnemar_widget
 
     w = _w()
+    c = CAMPANHA
     tabs = [
-        ("Slide 8 · passo a passo", worked_example_tab()),
-        ("Slide 9 · sig. × não sig.", significance_tab()),
-        ("Slide 10 · exato × χ²", methods_tab()),
-        ("Slide 18 · Safe Fall", safe_fall_tab()),
-        ("Slide 22 · demonstração", mcnemar_widget(b=3, c=13, a=15, d=9)),
-        ("Slide 23 · p-valor × c", pvalue_vs_c_tab()),
-        ("Slide 24 · educação", education_tab()),
+        ("Slide 10 · variantes", variants_tab()),
+        ("Slide 15 · Ilustração #1", classic_example_tab()),
+        ("Slide 17 · Ilustração #2", exact_example_tab()),
+        ("Slide 25 · Safe Fall", safe_fall_tab()),
+        ("Slide 29 · demonstração", mcnemar_widget(b=c.b, c=c.c, a=c.a, d=c.d)),
     ]
     tab = w.Tab(children=[t[1] for t in tabs])
     for i, (title, _) in enumerate(tabs):

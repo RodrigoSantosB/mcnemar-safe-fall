@@ -3,10 +3,13 @@ from math import comb
 import pytest
 
 from safe_fall_statistics.contingency_tables import PairedTable
+from safe_fall_statistics.synthetic_data import CAMPANHA, MONITORIA
 from safe_fall_statistics.interactive_demo import demo_state
 from safe_fall_statistics.mcnemar_analysis import (
     chi2_statistic,
+    chi2_critical,
     compare_methods,
+    midp_pvalue,
     exact_pvalue_manual,
     exact_pvalue_scipy,
     format_p,
@@ -69,3 +72,21 @@ def test_exact_and_asymptotic_can_disagree():
 def test_format_p_never_prints_zero():
     assert format_p(1e-30) == "p < 0,001"
     assert format_p(0.0386) == "p = 0,039"
+
+
+def test_midp_matches_definition():
+    # n = 15, k = 3: 2·[P(X ≤ 2) + 0,5·P(X = 3)]
+    assert midp_pvalue(3, 12) == pytest.approx(2 * ((1 + 15 + 105) + 455 / 2) / 2**15)
+    assert midp_pvalue(0, 0) == 1.0
+    assert midp_pvalue(5, 5) <= 1.0
+
+
+def test_chi2_critical_value():
+    assert chi2_critical() == pytest.approx(3.8415, abs=1e-4)
+
+
+def test_document_illustrations():
+    m = compare_methods(MONITORIA)
+    assert m["chi2_sem_correcao"] == pytest.approx(10.0)
+    assert m["p_chi2_sem_correcao"] == pytest.approx(0.001565, abs=5e-7)
+    assert compare_methods(CAMPANHA)["p_exato"] == pytest.approx(0.03516, abs=5e-6)

@@ -14,11 +14,7 @@ from safe_fall_statistics import visualizations as viz  # noqa: E402
 from safe_fall_statistics.contingency_tables import PairedTable  # noqa: E402
 from safe_fall_statistics.data_loader import load_published_table1  # noqa: E402
 from safe_fall_statistics.reconstruction import reconstructed_tables  # noqa: E402
-from safe_fall_statistics.synthetic_data import (  # noqa: E402
-    EDUCATION_EXAMPLE,
-    SMALL_NOT_SIGNIFICANT,
-    SMALL_SIGNIFICANT,
-)
+from safe_fall_statistics.synthetic_data import CAMPANHA, MONITORIA  # noqa: E402
 
 OUT = ROOT / "results" / "figures"
 COLAB_URL = ("https://colab.research.google.com/github/RodrigoSantosB/mcnemar-safe-fall/"
@@ -101,8 +97,9 @@ def formula(path: Path, tex: str, color: str, size: int = 26) -> None:
     plt.close(fig)
 
 
-def demo_snapshot(path: Path, b: int = 3, c: int = 13, a: int = 15, d: int = 9) -> None:
-    """Mesma figura produzida pelo widget do notebook (estado b=3, c=13)."""
+def demo_snapshot(path: Path, b: int = CAMPANHA.b, c: int = CAMPANHA.c, a: int = CAMPANHA.a,
+                  d: int = CAMPANHA.d) -> None:
+    """Mesma figura produzida pelo widget do notebook (estado inicial = Ilustração #2)."""
     fig = plt.figure(figsize=(11, 3.9))
     gs = fig.add_gridspec(1, 2, width_ratios=[1, 1.9])
     viz.plot_contingency(PairedTable(a, b, c, d), ax=fig.add_subplot(gs[0]))
@@ -122,16 +119,8 @@ def main() -> None:
         OUT / "discordantes_inferidos.png",
     )
 
-    for name, t in (("sig", SMALL_SIGNIFICANT), ("nsig", SMALL_NOT_SIGNIFICANT)):
-        fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.6), gridspec_kw={"width_ratios": [1, 1.8]})
-        viz.plot_contingency(t, ax=axes[0])
-        viz.plot_binomial_null(t.b, t.c, ax=axes[1])
-        fig.tight_layout()
-        viz.save(fig, OUT / f"exemplo_{name}.png")
-
-    viz.save(viz.plot_binomial_null(2, 10), OUT / "binomial_b2_c10.png")
-    viz.save(viz.plot_exact_vs_asymptotic(n=8), OUT / "exato_vs_assintotico.png")
-    viz.save(viz.plot_pvalue_vs_c(n=20), OUT / "pvalor_vs_c.png")
+    viz.save(viz.plot_binomial_null(CAMPANHA.b, CAMPANHA.c), OUT / "binomial_b3_c12.png")
+    viz.save(viz.plot_chi2_critical(10.0), OUT / "chi2_monitoria.png")
 
     neck = tables["Flexão do pescoço"]
     viz.save(viz.plot_transitions(neck), OUT / "fluxo_pescoco_inferido.png")
@@ -139,33 +128,36 @@ def main() -> None:
     viz.plot_contingency(neck, ax=ax)
     viz.save(fig, OUT / "tabela_pescoco_inferida.png")
 
-    viz.save(viz.plot_transitions(EDUCATION_EXAMPLE), OUT / "fluxo_educacao_sintetico.png")
-    fig, ax = plt.subplots(figsize=(4.8, 4.2))
-    viz.plot_contingency(EDUCATION_EXAMPLE, ax=ax, labels=("Acertou", "Errou"))
-    viz.save(fig, OUT / "tabela_educacao_sintetico.png")
-
-    # matriz genérica a/b/c/d para o slide conceitual
-    fig, ax = plt.subplots(figsize=(4.8, 4.2))
-    viz.plot_contingency(PairedTable(0, 0, 0, 0), ax=ax)
-    meaning = {"a": "permaneceu\ncorreto", "b": "piorou", "c": "melhorou", "d": "permaneceu\nincorreto"}
-    big = [t for t in ax.texts if t.get_text() == "0"]
-    small = [t for t in ax.texts if t.get_text() in meaning]
-    for b_txt, s_txt in zip(big, small):
-        letter = s_txt.get_text()
-        b_txt.set_text(letter)
-        b_txt.set_style("italic")
-        s_txt.set_text(meaning[letter])
-        s_txt.set_style("normal")
-        s_txt.set_fontsize(11)
-    viz.save(fig, OUT / "matriz_generica.png")
     body_schematic(OUT / "esquema_respostas.png")
     plt.rcParams["mathtext.fontset"] = "stix"
-    formula(OUT / "formula_p_exato.png",
-            r"$p=\min\left\{1,\;2\sum_{k=0}^{\min(b,c)}\binom{n}{k}\,0{,}5^{\,n}\right\}$", "white")
-    formula(OUT / "formula_chi2.png", r"$\chi^2=\dfrac{(|b-c|-1)^2}{b+c}\,,\quad 1\ \mathrm{g.l.}$", viz.NAVY)
-    formula(OUT / "formula_binomial.png", r"$B\sim\mathrm{Binomial}(b+c,\;0{,}5)$", viz.NAVY)
     formula(OUT / "formula_inversao.png", r"$b+c=\dfrac{(|c-b|-1)^2}{X^2}$", "white")
-    demo_snapshot(OUT / "demo_b3_c13.png")
+    # Bloco I — fórmulas do roteiro (documento "Teste de McNemar")
+    f = {
+        "estimadores": r"$\hat\pi_{11}=\dfrac{a}{N},\ \ \hat\pi_{10}=\dfrac{b}{N},\ \ \hat\pi_{01}=\dfrac{c}{N},\ \ \hat\pi_{00}=\dfrac{d}{N}$",
+        "marginais": r"$\pi_{1+}=\pi_{11}+\pi_{10}\qquad \pi_{+1}=\pi_{11}+\pi_{01}$",
+        "marginais_amostra": r"$\hat\pi_{1+}=\dfrac{a+b}{N}\qquad \hat\pi_{+1}=\dfrac{a+c}{N}$",
+        "h_marginais": r"$H_0:\ \pi_{1+}=\pi_{+1}\qquad H_1:\ \pi_{1+}\neq\pi_{+1}$",
+        "h_cancela": r"$\pi_{11}+\pi_{10}=\pi_{11}+\pi_{01}$",
+        "h_discordantes": r"$H_0:\ \pi_{10}=\pi_{01}\qquad H_1:\ \pi_{10}\neq\pi_{01}$",
+        "p_direcao": r"$p=\dfrac{\pi_{10}}{\pi_{10}+\pi_{01}}\ \Rightarrow\ \mathrm{sob}\ H_0:\ p=0{,}5$",
+        "b_binomial": r"$B\sim \mathrm{Bin}(n;\,0{,}5),\quad \mu=\dfrac{n}{2},\quad \sigma^2=\dfrac{n}{4}$",
+        "z": r"$z=\dfrac{b-\mu}{\sqrt{\sigma^2}}=\dfrac{b-\frac{n}{2}}{\sqrt{\frac{n}{4}}}=\dfrac{b-\frac{b+c}{2}}{\sqrt{\frac{b+c}{4}}}=\dfrac{b-c}{\sqrt{b+c}}$",
+        "v_classica": r"$\chi^2=\dfrac{(b-c)^2}{b+c}$",
+        "v_edwards": r"$\chi^2=\dfrac{(|b-c|-1)^2}{b+c}$",
+        "v_exata": r"$p=2\cdot P(X\leq k)$",
+        "v_midp": r"$p=2\cdot[P(X<k)+0{,}5\,P(X=k)]$",
+        "pmf": r"$P(X=k)=\binom{n}{k}\,p^{k}\cdot q^{\,n-k}$",
+        "pmf05": r"$P(X=k)=\binom{n}{k}\cdot(0{,}5)^{k}\cdot(0{,}5)^{n-k}$",
+        "ex1_chi2": r"$\chi^2=\dfrac{(10-30)^2}{10+30}=\dfrac{400}{40}=10$",
+        "ex1_crit": r"$\chi^2_{cr\'itico}=\chi^2_{0{,}05;\,1}=3{,}841$",
+        "ex2_p": r"$p_{valor}=2\cdot\sum_{i=0}^{3}\binom{15}{i}\cdot(0{,}5)^{i}\cdot(0{,}5)^{15-i}$",
+    }
+    for name, tex in f.items():
+        formula(OUT / f"f_{name}.png", tex, viz.NAVY)
+    formula(OUT / "f_chi2_branco.png", r"$\chi^2=\dfrac{(b-c)^2}{b+c}$", "white")
+    formula(OUT / "f_pvalor_branco.png", r"$p_{valor}=2\cdot\sum_{i=0}^{k}P(X=i)$", "white")
+    formula(OUT / "f_h_discordantes_branco.png", f["h_discordantes"], "white")
+    demo_snapshot(OUT / "demo_b3_c12.png")
     colab_qr(OUT / "qr_colab.png")
     print("figuras em", OUT)
 

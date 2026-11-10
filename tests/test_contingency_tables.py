@@ -3,7 +3,7 @@ import pytest
 
 from safe_fall_statistics.contingency_tables import PairedTable
 from safe_fall_statistics.data_validation import validate_paired
-from safe_fall_statistics.synthetic_data import EDUCATION_EXAMPLE, individuals_from_table, simulate_paired_study
+from safe_fall_statistics.synthetic_data import CAMPANHA, individuals_from_table, simulate_paired_study
 
 
 def test_from_paired_counts_each_transition():
@@ -29,8 +29,8 @@ def test_discordant_pairs_identified():
 
 
 def test_round_trip_individuals_to_table():
-    df = individuals_from_table(EDUCATION_EXAMPLE, seed=1)
-    assert PairedTable.from_paired(df["pre"], df["pos"]) == EDUCATION_EXAMPLE
+    df = individuals_from_table(CAMPANHA, seed=1)
+    assert PairedTable.from_paired(df["pre"], df["pos"]) == CAMPANHA
 
 
 def test_to_array_layout_matches_statsmodels_convention():
